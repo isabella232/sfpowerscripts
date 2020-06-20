@@ -3,7 +3,7 @@
     "name": "sfpowerscripts-postcreatepackage-task",
     "friendlyName": "Execute Post Steps after creating a package",
     "description": "This task executes steps after a package creation job ,This task is part of DX@Scale/SFPowerscripts",
-    "helpMarkDown": "This task is added as a decorator automatically to a pipeline that has a Create Package task",
+    "helpMarkDown": "This task has to be aded to a pipeline which has package creation task",
     "category": "Utility",
     "author": "dxatscale@accenture.com",
     "version": {

@@ -6,7 +6,6 @@ import { join } from "path";
 async function run() {
   console.log("Pushing Tags if any... ");
   console.log("Remote", tl.getVariable("git_remote_url"));
-  tl.setVariable("post_package_task_executed","true");
   await pushGitTag();
 }
 
