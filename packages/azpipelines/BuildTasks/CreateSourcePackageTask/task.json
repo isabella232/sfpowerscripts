@@ -14,7 +14,7 @@
     "runsOn": [
         "Agent"
     ],
-    "instanceNameFormat": "Creates a new version of source baed repo for $(package)",
+    "instanceNameFormat": "Creates a new version of Source Based Package for  $(package)",
     "inputs": [
         {
             "name": "package",

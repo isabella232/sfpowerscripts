@@ -147,16 +147,6 @@
             "path": "BuildTasks/CreateDeltaPackageTask"
         },
         {
-            "path": "BuildTasks/PostDecorators/CreatePackagePostDecorator.yml",
-            "addressable":true,
-            "contentType": "text/plain"
-        },
-        {
-            "path": "BuildTasks/PreDecorators/InstallSFDXPreDecorator.yml",
-            "addressable":true,
-            "contentType": "text/plain"
-        },
-        {
             "path": "BuildTasks/PostPackageCreateTask"
         },
         {
