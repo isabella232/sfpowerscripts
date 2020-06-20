@@ -131,7 +131,7 @@
     },
      "postjobexecution": {
         "Node": {
-            "target": "lib/CreateSourcePackageTask/PostPackageCreate.js",
+            "target": "lib/CreateSourcePackageTask/PostPackageTaskCheck.js",
             "argumentFormat": ""
         }
     }
