@@ -7,6 +7,6 @@
     },
     "files": [
         "CreateUnlockedPackage.ts",
-        "PostPackageTaskCheck.t"
+        "PostPackageTaskCheck.ts"
     ]
   }
