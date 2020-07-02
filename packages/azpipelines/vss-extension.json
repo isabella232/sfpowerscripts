@@ -155,6 +155,15 @@
         }
     ],
     "contributions": [
+        { 
+            "id": "release-tab", 
+            "type": "ms.vss-web.tab",
+            "targets": [ "ms.vss-tfs-web.suite-home-pivots" ], 
+            "properties": { 
+               "name": "Custom Tab Name", 
+               "uri": "UI/ReleaseTab/ReleaseTab.html" 
+            } 
+         },
         {
             "id": "sfpowerscripts-pmdanalysis-tab",
             "type": "ms.vss-build-web.build-results-tab",
