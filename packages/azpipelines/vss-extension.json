@@ -160,7 +160,7 @@
             "type": "ms.vss-releaseManagement-web.release-summary-tab",
             "targets": [ "ms.vss-releaseManagement-web.release-details-view" ], 
             "properties": { 
-               "name": "Custom Tab Name", 
+               "name": "Check Box", 
                "uri": "UI/ReleaseTab/ReleaseTab.html" 
             } 
          },
