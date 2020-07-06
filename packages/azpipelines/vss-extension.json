@@ -157,8 +157,8 @@
     "contributions": [
         { 
             "id": "release-tab", 
-            "type": "ms.vss-releaseManagement-web.release-summary-section",
-            "targets": [ "ms.vss-releaseManagement-web.release-details-summary-tab" ], 
+            "type": "ms.vss-web.tab",
+            "targets": [ "ms.vss-releaseManagement-web.release-environment-editor-tab" ], 
             "properties": { 
                "name": "Check Box", 
                "uri": "UI/ReleaseTab/ReleaseTab.html" 
