@@ -37,6 +37,7 @@ import {
 import { ISimpleListCell } from "azure-devops-ui/List";
 import { IStatusProps, Status, Statuses, StatusSize } from "azure-devops-ui/Status";
 import { Duration } from "azure-devops-ui/Duration";
+import { css } from "azure-devops-ui/Util";
 
 
 
@@ -52,7 +53,7 @@ export interface ITableItem extends ISimpleTableCell {
 }
 
 export interface ITableItemDetail extends ISimpleTableCell {
-    name: string;
+    name: ISimpleListCell;
     time: string;
 }
 
@@ -67,6 +68,8 @@ const fixedColumns = [
         renderCell: renderSimpleCell,
         width: new ObservableValue(200)
     },
+    
+    
     {
         id: "author",
         name: "Author",
@@ -74,6 +77,8 @@ const fixedColumns = [
         renderCell: renderSimpleCell,
         width: new ObservableValue(100)
     },
+    ColumnFill
+    ,
     {
         columnLayout: TableColumnLayout.none,
         id: "time",
@@ -81,8 +86,8 @@ const fixedColumns = [
         readonly: true,
         renderCell: renderSimpleCell,
         width: new ObservableValue(100)
-    },
-    ColumnFill
+    }
+    
 ];
 
 const fixedColumnsDetail = [
@@ -107,102 +112,52 @@ const fixedColumnsDetail = [
     
 ];
 
+const renderStatus = (className?: string) => {
+    return (
+       
+                <Status
+                {...Statuses.Success}
+                ariaLabel="Success"
+                
+                size={StatusSize.s}
+                />
+            //     <Status
+            //     {...getStatusIndicatorData(statusValue).statusProps}
+            //     className="icon-large-margin"
+            //     size={StatusSize.l}
+            // />
+  
+    );
+};
 
-
-
-export const rawTableItems: ITableItem[] = [
-    {
-        time: "50",
-        author: "Kang",
-        name: "Run version 1"
-    }
-    
-];
-export const rawTableItemsDetail: ITableItemDetail[] = [
-    {
-        time: "50",
-        name: "Run version 1"
-    }
-    
-];
-
-
-
-export const tableItems = new ArrayItemProvider<ITableItem>(rawTableItems);
-export const tableItemsNoIcons = new ArrayItemProvider<ITableItem>(
-    rawTableItems.map((item: ITableItem) => {
-        const newItem = Object.assign({}, item);
-       // newItem.name = { text: newItem.name.text };
-        return newItem;
-    })
-);
-export const tableItemsDetail = new ArrayItemProvider<ITableItemDetail>(rawTableItemsDetail);
-export const tableItemsNoIconsDetail = new ArrayItemProvider<ITableItemDetail>(
-    rawTableItemsDetail.map((item: ITableItemDetail) => {
-        const newItem = Object.assign({}, item);
-       // newItem.name = { text: newItem.name.text };
-        return newItem;
-    })
-);
-
-
-/****Advanced Tabled config **/
-
+const renderStatus2 = (className?: string) => {
+    return (
+       
+                <Status
+                {...Statuses.Success}
+                ariaLabel="Success"
+                
+                size={StatusSize.s}
+                />
+            //     <Status
+            //     {...getStatusIndicatorData(statusValue).statusProps}
+            //     className="icon-large-margin"
+            //     size={StatusSize.l}
+            // />
+  
+    );
+};
+interface IStatusIndicatorData {
+    statusProps: IStatusProps;
+    label: string;
+}
 enum PipelineStatus {
     running = "running",
     succeeded = "succeeded",
     failed = "failed",
     warning = "warning"
 }
-interface IPipelineItem {
-    name: string;
-    status: PipelineStatus;
-    time: string
-}
 
-
-const columnsAdvanced: ITableColumn<IPipelineItem>[] = [
-    {
-        id: "name",
-        name: "Name",
-        renderCell: renderNameColumn,
-        readonly: true,
-        sortProps: {
-            ariaLabelAscending: "Sorted A to Z",
-            ariaLabelDescending: "Sorted Z to A"
-        },
-        width: new ObservableValue(200)
-    },
-    ColumnFill
-    ,
-    {
-        columnLayout: TableColumnLayout.none,
-        id: "time",
-        name: "Time",
-        readonly: true,
-        renderCell: renderDateColumn,
-        width: new ObservableValue(100)
-    }
-    
-];
-
-const pipelineItems = [
-    {
-      
-        name: "enterprise-distributed-service",
-        status: PipelineStatus.running,
-        time: "24"
-    }
-]
-
-const itemProvider = new ObservableValue<ArrayItemProvider<IPipelineItem>>(
-    new ArrayItemProvider(pipelineItems)
-);
-
-interface IStatusIndicatorData {
-    statusProps: IStatusProps;
-    label: string;
-}
 
 function getStatusIndicatorData(status: string): IStatusIndicatorData {
     status = status || "";
@@ -231,48 +186,50 @@ function getStatusIndicatorData(status: string): IStatusIndicatorData {
 }
 
 
-function renderNameColumn(
-    rowIndex: number,
-    columnIndex: number,
-    tableColumn: ITableColumn<IPipelineItem>,
-    tableItem: IPipelineItem
-): JSX.Element {
-    return (
-        <SimpleTableCell
-            columnIndex={columnIndex}
-            tableColumn={tableColumn}
-            key={"col-" + columnIndex}
-            contentClassName="fontWeightSemiBold font-weight-semibold fontSizeM font-size-m scroll-hidden"
-        >
-            <Status
-                {...getStatusIndicatorData(tableItem.status).statusProps}
-                className="icon-large-margin"
-                size={StatusSize.l}
-            />
-            <p>nameexample</p>
-           
-        </SimpleTableCell>
-    );
-}
 
-function renderDateColumn(
-    rowIndex: number,
-    columnIndex: number,
-    tableColumn: ITableColumn<IPipelineItem>,
-    tableItem: IPipelineItem
-): JSX.Element {
-    return (
-        <p>
-            {tableItem.time}
-        </p>
-    );
-}
+export const rawTableItems: ITableItem[] = [
+    {
+        time: "50",
+        author: "Kang",
+        name: "Run version 1"
+    }
+    
+];
+
+
+//may need to use another obj to do logic to render status conditionally
+export var rawTableItemsDetail: ITableItemDetail[] = [
+    {
+        time: "50",
+        name: { iconProps: { render: renderStatus2 }, text: "Rory Boisvert" }
+    }
+    
+];
 
 
 
 
 
 
+export const tableItems = new ArrayItemProvider<ITableItem>(rawTableItems);
+export const tableItemsNoIcons = new ArrayItemProvider<ITableItem>(
+    rawTableItems.map((item: ITableItem) => {
+        const newItem = Object.assign({}, item);
+       // newItem.name = { text: newItem.name.text };
+        return newItem;
+    })
+);
+export const tableItemsDetail = new ArrayItemProvider<ITableItemDetail>(rawTableItemsDetail);
+export const tableItemsNoIconsDetail = new ArrayItemProvider<ITableItemDetail>(
+    rawTableItemsDetail.map((item: ITableItemDetail) => {
+        const newItem = Object.assign({}, item);
+       // newItem.name = { text: newItem.name.text };
+        return newItem;
+    })
+);
+
+
+/****Advanced Tabled config **/
 
 
 
@@ -285,9 +242,8 @@ function renderDateColumn(
 class PivotContent extends React.Component<{}, IPivotContentState> {    
 
      
-
-
     private isDialogOpen = new ObservableValue<boolean>(false);
+    
 
     constructor(props: {}) {
         super(props);
@@ -379,31 +335,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                 </div>
 
 
-                <div className="advanced-detail">
-                <Card
-                className="flex-grow bolt-table-card"
-                contentProps={{ contentPadding: false }}
-                titleProps={{ text: "All pipelines" }}
-                >
-                    <Observer itemProvider={itemProvider}>
-                        {(observableProps: { itemProvider: ArrayItemProvider<IPipelineItem> }) => (
-                            <Table<Partial<IPipelineItem>>
-                                ariaLabel="Advanced table"
-                                behaviors={[this.sortingBehavior]}
-                                columns={columnsAdvanced}
-                                itemProvider={observableProps.itemProvider}
-                                showLines={true}
-                                
-                                onSelect={(event, data) => console.log("Selected Row - " + data.index)}
-                                onActivate={(event, row) => console.log("Activated Row - " + row.index)}
-                            />
-                        )}
-                    </Observer>
-                </Card>
-                </div>
-
-            
-
+        
                 <Observer isDialogOpen={this.isDialogOpen}>
                     {(props: { isDialogOpen: boolean }) => {
                         return props.isDialogOpen ? (
@@ -436,26 +368,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
     }
 
 
-    private sortFunctions = [
-        // Sort on Name column
-        (item1: IPipelineItem, item2: IPipelineItem) => {
-            return item1.name.localeCompare(item2.name!);
-        }
-    ];
-    
-    private sortingBehavior = new ColumnSorting<Partial<IPipelineItem>>(
-        (columnIndex: number, proposedSortOrder: SortOrder) => {
-            itemProvider.value = new ArrayItemProvider(
-                sortItems(
-                    columnIndex,
-                    proposedSortOrder,
-                    this.sortFunctions,
-                    columnsAdvanced,
-                    pipelineItems
-                )
-            );
-        }
-    );
+  
 }
 
 showRootComponent(<PivotContent />);
