@@ -7,8 +7,29 @@ import { showRootComponent } from "../Common";
 import { getClient } from "azure-devops-extension-api";
 import { CoreRestClient, ProjectVisibility, TeamProjectReference } from "azure-devops-extension-api/Core";
 
-import { Table, ITableColumn, renderSimpleCell, renderSimpleCellValue } from "azure-devops-ui/Table";
+
 import { ArrayItemProvider } from "azure-devops-ui/Utilities/Provider";
+import { Button } from "azure-devops-ui/Button";
+import { Dialog } from "azure-devops-ui/Dialog";
+import { Observer } from "azure-devops-ui/Observer";
+import { ObservableValue } from "azure-devops-ui/Core/Observable";
+import { Card } from "azure-devops-ui/Card";
+import { Header, TitleSize } from "azure-devops-ui/Header";
+import { Page } from "azure-devops-ui/Page";
+
+import {
+    ColumnFill,
+    ColumnMore,
+    ColumnSelect,
+    ISimpleTableCell,
+    renderSimpleCell,
+    TableColumnLayout,
+    renderSimpleCellValue,
+    ITableColumn,
+    Table
+} from "azure-devops-ui/Table";
+import { ISimpleListCell } from "azure-devops-ui/List";
+
 
 
 interface IPivotContentState {
@@ -16,8 +37,66 @@ interface IPivotContentState {
     columns: ITableColumn<any>[];
 }
 
+export interface ITableItem extends ISimpleTableCell {
+    name: string;
+    author: string;
+    time: string;
+}
 
-class PivotContent extends React.Component<{}, IPivotContentState> {
+
+
+const fixedColumns = [
+    {
+        columnLayout: TableColumnLayout.singleLinePrefix,
+        id: "name",
+        name: "Name",
+        readonly: true,
+        renderCell: renderSimpleCell,
+        width: new ObservableValue(200)
+    },
+    {
+        id: "author",
+        name: "Author",
+        readonly: true,
+        renderCell: renderSimpleCell,
+        width: new ObservableValue(100)
+    },
+    {
+        columnLayout: TableColumnLayout.none,
+        id: "time",
+        name: "Time",
+        readonly: true,
+        renderCell: renderSimpleCell,
+        width: new ObservableValue(100)
+    },
+    ColumnFill
+];
+
+
+export const rawTableItems: ITableItem[] = [
+    {
+        time: "50",
+        author: "Kang",
+        name: "Run version 1"
+    }
+    
+];
+
+export const tableItems = new ArrayItemProvider<ITableItem>(rawTableItems);
+export const tableItemsNoIcons = new ArrayItemProvider<ITableItem>(
+    rawTableItems.map((item: ITableItem) => {
+        const newItem = Object.assign({}, item);
+       // newItem.name = { text: newItem.name.text };
+        return newItem;
+    })
+);
+
+class PivotContent extends React.Component<{}, IPivotContentState> {    
+
+     
+
+
+    private isDialogOpen = new ObservableValue<boolean>(false);
 
     constructor(props: {}) {
         super(props);
@@ -61,66 +140,80 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
         });
     }
 
+     onChange(event) {
+        var file = event.target.files[0];
+        var reader = new FileReader();
+        reader.onload = function(event) {
+          // The file's text will be printed here
+          console.log(event.target.result);
+        };
+      
+        reader.readAsText(file);
+      }
+
+ 
     public render(): JSX.Element {
+        const onDismiss = () => {
+            this.isDialogOpen.value = false;
+        };
         return (
-            <div className="sample-pivot">
-                
-             
-                {
-               
-
-                    `
-                    Sample Data: 
+            <div>
+            
+                <div className="open-dialog-btn">
+                <Button
+                            text="Submit an execution log"
+                            primary={true}
+                            onClick={() => {
+                                this.isDialogOpen.value = true;
+                            }}
+                />
+                </div>
+                <div className="execution-logs">
                     
-                    {
-                        "runbook": "SFDC-Core Runbook",
-                        "version": 1,
-                        "metadata": "This runbook is to be executed befor",
-                        "schema_version": 1,
-                        "inputs": {
-                          "checklist_filepath": "/Users/alan.ly/Workspaces/devops/sfpowerscripts/packages/sfpowerscripts-cli/schema/checklist.yaml",
-                          "alias": "dev"
-                        },
-                        "tasks": [
-                          {
-                            "task": "Deactivate Sharing Rule",
-                            "id": 1,
-                            "steps": "Run sfpowerkit script /U23239\n/tDo that\nKick Some\nSKKSKS\nskdjsd\nsdkjs\n",
-                            "condition": "always | reject | continue",
-                            "status": "Done",
-                            "timeTaken": 4138,
-                            "User": "AMAC02Z10EKLVDQ",
-                            "Date": "2020-06-30T08:17:50.417Z"
-                          },
-                          {
-                            "task": "Deactivate Sharing Rule",
-                            "id": 3,
-                            "steps": "Do this }\n/tDo that\nKick Some\nSKKSKS\nskdjsd\nsdkjs\n",
-                            "runOnlyOn": "dev",
-                            "condition": "always | reject | continue",
-                            "status": "Skip",
-                            "timeTaken": 20940,
-                            "User": "AMAC02Z10EKLVDQ",
-                            "Date": "2020-06-30T08:18:11.358Z"
-                          },
-                          {
-                            "task": "task number 6",
-                            "id": 6,
-                            "steps": "Do this }\n/tDo that\nKick Some\nSKKSKS\nskdjsd\nsdkjs\n",
-                            "runOnlyOn": "dev",
-                            "condition": "always | reject | continue",
-                            "status": "Done",
-                            "timeTaken": 2722,
-                            "User": "AMAC02Z10EKLVDQ",
-                            "Date": "2020-06-30T08:27:40.594Z"
-                          }
-                        ]
-                      }
-                      `
+                    <Header
+                        title={"Submitted Execution Logs"}
+                        
+                        titleSize={TitleSize.Medium}
+                        titleIconProps={{ iconName: "OpenSource" }}
+                    />
 
-                }
-                
+                    <div className="page-content">
+                    <Card className="flex-grow bolt-table-card" contentProps={{ contentPadding: false }}>
+                        <Table ariaLabel="Basic Table" columns={fixedColumns} itemProvider={tableItemsNoIcons} role="table" />
+                    </Card>
+                    </div>
+                    
+
+                </div>
+                <div className="detail-logs"></div>
+                <Observer isDialogOpen={this.isDialogOpen}>
+                    {(props: { isDialogOpen: boolean }) => {
+                        return props.isDialogOpen ? (
+                            <Dialog
+                                titleProps={{ text: "Confirm" }}
+                                footerButtonProps={[
+                                    {
+                                        text: "Cancel",
+                                        onClick: onDismiss
+                                    },
+                                    {
+                                        text: "Save",
+                                        onClick: onDismiss,
+                                        primary: true
+                                    }
+                                ]}
+                                onDismiss={onDismiss}
+                            >
+                                Please select a file:
+                                
+                                <input type="file" onChange={e => this.onChange(e)}></input>
+                            </Dialog>
+                        ) : null;
+                    }}
+                </Observer>
+
             </div>
+           
         );
     }
 }
