@@ -3,7 +3,7 @@ import * as SDK from "azure-devops-extension-sdk";
 
 
 import { showRootComponent } from "../Common";
-import  TableComponent from "../TableComponent/TableComponent";
+import  TableComponent, { tableItems } from "../TableComponent/TableComponent";
 
 
 import { getClient } from "azure-devops-extension-api";
@@ -42,8 +42,11 @@ import { css } from "azure-devops-ui/Util";
 
 
 interface IPivotContentState {
-    projects?: ArrayItemProvider<TeamProjectReference>;
-    columns: ITableColumn<any>[];
+    contentsFromFile?: ArrayItemProvider<any>;
+    tableItems?: ArrayItemProvider<ITableItem>;
+    tableItemDetail?: ArrayItemProvider<ITableItemDetail>;
+   
+    
 }
 
 export interface ITableItem extends ISimpleTableCell {
@@ -112,7 +115,7 @@ const fixedColumnsDetail = [
     
 ];
 
-const renderStatus = (className?: string) => {
+const renderStatusSuccess = (className?: string) => {
     return (
        
                 <Status
@@ -121,118 +124,62 @@ const renderStatus = (className?: string) => {
                 
                 size={StatusSize.s}
                 />
-            //     <Status
-            //     {...getStatusIndicatorData(statusValue).statusProps}
-            //     className="icon-large-margin"
-            //     size={StatusSize.l}
-            // />
   
     );
 };
 
-const renderStatus2 = (className?: string) => {
+const renderStatusFailed = (className?: string) => {
     return (
        
                 <Status
-                {...Statuses.Success}
-                ariaLabel="Success"
+                {...Statuses.Failed}
+                ariaLabel="Failed"
                 
                 size={StatusSize.s}
-                />
-            //     <Status
-            //     {...getStatusIndicatorData(statusValue).statusProps}
-            //     className="icon-large-margin"
-            //     size={StatusSize.l}
-            // />
-  
+                /> 
     );
 };
-interface IStatusIndicatorData {
-    statusProps: IStatusProps;
-    label: string;
-}
-enum PipelineStatus {
-    running = "running",
-    succeeded = "succeeded",
-    failed = "failed",
-    warning = "warning"
-}
 
-
-function getStatusIndicatorData(status: string): IStatusIndicatorData {
-    status = status || "";
-    status = status.toLowerCase();
-    const indicatorData: IStatusIndicatorData = {
-        label: "Success",
-        statusProps: { ...Statuses.Success, ariaLabel: "Success" }
-    };
-    switch (status) {
-        case PipelineStatus.failed:
-            indicatorData.statusProps = { ...Statuses.Failed, ariaLabel: "Failed" };
-            indicatorData.label = "Failed";
-            break;
-        case PipelineStatus.running:
-            indicatorData.statusProps = { ...Statuses.Running, ariaLabel: "Running" };
-            indicatorData.label = "Running";
-            break;
-        case PipelineStatus.warning:
-            indicatorData.statusProps = { ...Statuses.Warning, ariaLabel: "Warning" };
-            indicatorData.label = "Warning";
-
-            break;
-    }
-
-    return indicatorData;
-}
-
-
-
-export const rawTableItems: ITableItem[] = [
-    {
-        time: "50",
-        author: "Kang",
-        name: "Run version 1"
-    }
-    
-];
-
-
-//may need to use another obj to do logic to render status conditionally
-export var rawTableItemsDetail: ITableItemDetail[] = [
-    {
-        time: "50",
-        name: { iconProps: { render: renderStatus2 }, text: "Rory Boisvert" }
-    }
-    
-];
-
-
-
-
-
-
-export const tableItems = new ArrayItemProvider<ITableItem>(rawTableItems);
-export const tableItemsNoIcons = new ArrayItemProvider<ITableItem>(
-    rawTableItems.map((item: ITableItem) => {
-        const newItem = Object.assign({}, item);
-       // newItem.name = { text: newItem.name.text };
-        return newItem;
-    })
-);
-export const tableItemsDetail = new ArrayItemProvider<ITableItemDetail>(rawTableItemsDetail);
-export const tableItemsNoIconsDetail = new ArrayItemProvider<ITableItemDetail>(
-    rawTableItemsDetail.map((item: ITableItemDetail) => {
-        const newItem = Object.assign({}, item);
-       // newItem.name = { text: newItem.name.text };
-        return newItem;
-    })
-);
 
 
 /****Advanced Tabled config **/
+// interface IStatusIndicatorData {
+//     statusProps: IStatusProps;
+//     label: string;
+// }
+// enum PipelineStatus {
+//     running = "running",
+//     succeeded = "succeeded",
+//     failed = "failed",
+//     warning = "warning"
+// }
 
 
+// function getStatusIndicatorData(status: string): IStatusIndicatorData {
+//     status = status || "";
+//     status = status.toLowerCase();
+//     const indicatorData: IStatusIndicatorData = {
+//         label: "Success",
+//         statusProps: { ...Statuses.Success, ariaLabel: "Success" }
+//     };
+//     switch (status) {
+//         case PipelineStatus.failed:
+//             indicatorData.statusProps = { ...Statuses.Failed, ariaLabel: "Failed" };
+//             indicatorData.label = "Failed";
+//             break;
+//         case PipelineStatus.running:
+//             indicatorData.statusProps = { ...Statuses.Running, ariaLabel: "Running" };
+//             indicatorData.label = "Running";
+//             break;
+//         case PipelineStatus.warning:
+//             indicatorData.statusProps = { ...Statuses.Warning, ariaLabel: "Warning" };
+//             indicatorData.label = "Warning";
 
+//             break;
+//     }
+
+//     return indicatorData;
+// }
 
 /****Advanced Tabled config End*/
 
@@ -243,14 +190,54 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
      
     private isDialogOpen = new ObservableValue<boolean>(false);
+
+    //data used in the submitted execution logs
+    private rawTableItems: ITableItem[] = [
+        {
+            time: "50",
+            author: "Kang",
+            name: "Run version 1"
+        }
+        
+    ];
     
+    //data used in the detailed execution logs
+    //may need to use another obj to do logic to render status conditionally
+    private rawTableItemsDetail: ITableItemDetail[] = [
+        {
+            time: "50",
+            name: { iconProps: { render: renderStatusFailed }, text: "Rory Boisvert" }
+        }
+        
+    ];
+
+
+    private tableItems = new ArrayItemProvider<ITableItem>(this.rawTableItems);
+    private tableItemsNoIcons = new ArrayItemProvider<ITableItem>(
+       this.rawTableItems.map((item: ITableItem) => {
+           const newItem = Object.assign({}, item);
+          // newItem.name = { text: newItem.name.text };
+           return newItem;
+       })
+   );
+   private tableItemsDetail = new ArrayItemProvider<ITableItemDetail>(this.rawTableItemsDetail);
+   private tableItemsNoIconsDetail = new ArrayItemProvider<ITableItemDetail>(
+       this.rawTableItemsDetail.map((item: ITableItemDetail) => {
+           const newItem = Object.assign({}, item);
+          // newItem.name = { text: newItem.name.text };
+           return newItem;
+       })
+   );
+
+
 
     constructor(props: {}) {
         super(props);
 
-        // this.state = {
-           
-        // };
+         this.state = {
+           tableItems: new ArrayItemProvider([]),
+           tableItemDetail: new ArrayItemProvider([])
+         };
     }
 
     public componentDidMount() {
@@ -260,28 +247,73 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
     private async initializeComponent() {
         //const projects = await getClient(CoreRestClient).getProjects();
-        let projects = [];
-        this.setState({
-            projects: new ArrayItemProvider(projects)
-        });
+        // let projects = [];
+        // this.setState({
+        //     contentsFromFile: new ArrayItemProvider([]),
+        //     tableItems: new ArrayItemProvider([])
+        // });
+       
     }
 
-     onChange(event) {
-        var file = event.target.files[0];
-        var reader = new FileReader();
-        reader.onload = function(event) {
-          // The file's text will be printed here
-          console.log(event.target.result);
-        };
-      
-        reader.readAsText(file);
-      }
+    
 
  
     public render(): JSX.Element {
         const onDismiss = () => {
             this.isDialogOpen.value = false;
+            
         };
+       const onChange = (event) => {
+           var self = this;
+            var file = event.target.files[0];
+            var reader = new FileReader();
+            
+            //var data = [];
+
+            reader.onload = function(event) {
+              // The file's text will be printed here
+              //console.log(event.target.result);
+                
+            // self.rawTableItems =  JSON.parse(event.target.result.toString());
+                let data = JSON.parse(event.target.result.toString());
+                console.log(data);
+                let name = data.runbook;
+                let author = "kang2";
+                let time = "sometime";
+                self.rawTableItems.push({
+                    name:name,
+                    author:author,
+                    time:time
+                });
+
+                let newTableItems = new ArrayItemProvider<ITableItem>(self.rawTableItems);
+           
+                console.log(newTableItems);
+                self.setState(
+                    {
+                    tableItems: newTableItems
+                    }
+                    
+                );
+
+            };
+
+           
+
+            //console.log(self.rawTableItems);
+           
+
+            //console.log(newTableItems);
+           
+            
+
+          
+            reader.readAsText(file);
+            
+            
+          }
+
+
         return (
             <div>
             
@@ -306,7 +338,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
                    
                     <Card className="flex-grow bolt-table-card" contentProps={{ contentPadding: false }}>
-                         <Table ariaLabel="Basic Table" columns={fixedColumns} itemProvider={tableItemsNoIcons} role="table" />
+                         <Table ariaLabel="Basic Table" columns={fixedColumns} itemProvider={this.state.tableItems} role="table" />
                     </Card>
                   
                     
@@ -328,7 +360,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                     </div>
 
                     <Card className="flex-grow bolt-table-card" contentProps={{ contentPadding: false }}>
-                         <Table ariaLabel="Basic Table" columns={fixedColumnsDetail} itemProvider={tableItemsNoIconsDetail} role="table" />
+                         <Table ariaLabel="Basic Table" columns={fixedColumnsDetail} itemProvider={this.tableItemsNoIconsDetail} role="table" />
                     </Card>
                   
 
@@ -356,7 +388,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                             >
                                 Please select a file:
                                 
-                                <input type="file" onChange={e => this.onChange(e)}></input>
+                                <input type="file" onChange={e => onChange(e)}></input>
                             </Dialog>
                         ) : null;
                     }}
