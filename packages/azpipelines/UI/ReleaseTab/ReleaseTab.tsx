@@ -140,6 +140,17 @@ const renderStatusFailed = (className?: string) => {
     );
 };
 
+const renderStatusSkipped = (className?: string) => {
+    return (
+        <Status
+        {...Statuses.Skipped}
+        key="skipped"
+        size={StatusSize.m}
+        
+    />
+    );
+}
+
 
 
 /****Advanced Tabled config **/
@@ -273,8 +284,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
             reader.onload = function(event) {
               // The file's text will be printed here
               //console.log(event.target.result);
-                
-            // self.rawTableItems =  JSON.parse(event.target.result.toString());
+            
+              /*** Populated data to submitted execution logs*/
                 let data = JSON.parse(event.target.result.toString());
                 console.log(data);
                 let name = data.runbook;
@@ -296,17 +307,47 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                     
                 );
 
+                /****Populate data to detail execution logs */
+                for(let i =0; i<data.tasks.length; i++) {
+
+                    let nameDetail = data.tasks[i].task;
+                    let timeTaken = data.tasks[i].timeTaken;
+                    let status = data.tasks[i].status;
+
+                    console.log(nameDetail,timeTaken,status);
+
+                    if(status == "Done") {
+                        self.rawTableItemsDetail.push({
+                            time: timeTaken,
+                            name: {
+                                iconProps: { render: renderStatusSuccess }, text: nameDetail
+                            }
+                        });
+                    }else if(status == "Skip") {
+                        self.rawTableItemsDetail.push({
+                            time: timeTaken,
+                            name: {
+                                iconProps: { render: renderStatusSkipped }, text: nameDetail
+                            }
+                        });
+                    }
+                    
+
+                }
+
+                let newTableItemsDetail = new ArrayItemProvider<ITableItemDetail>(self.rawTableItemsDetail);
+
+                // console.log(self.rawTableItemsDetail);
+                // console.log(newTableItemsDetail);
+                self.setState(
+                    {
+                        tableItemDetail: newTableItemsDetail
+                    }
+                    
+                );
+
+
             };
-
-           
-
-            //console.log(self.rawTableItems);
-           
-
-            //console.log(newTableItems);
-           
-            
-
           
             reader.readAsText(file);
             
@@ -360,7 +401,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                     </div>
 
                     <Card className="flex-grow bolt-table-card" contentProps={{ contentPadding: false }}>
-                         <Table ariaLabel="Basic Table" columns={fixedColumnsDetail} itemProvider={this.tableItemsNoIconsDetail} role="table" />
+                         <Table ariaLabel="Basic Table" columns={fixedColumnsDetail} itemProvider={this.state.tableItemDetail} role="table" />
                     </Card>
                   
 
