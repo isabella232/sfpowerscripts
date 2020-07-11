@@ -197,6 +197,8 @@ const renderStatusSkipped = (className?: string) => {
 
 
 
+
+
 class PivotContent extends React.Component<{}, IPivotContentState> {    
 
      
@@ -265,6 +267,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
         // });
        
     }
+    
 
     
 
@@ -274,85 +277,122 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
             this.isDialogOpen.value = false;
             
         };
-       const onChange = (event) => {
-           var self = this;
-            var file = event.target.files[0];
-            var reader = new FileReader();
-            
-            //var data = [];
 
-            reader.onload = function(event) {
-              // The file's text will be printed here
-              //console.log(event.target.result);
-            
-              /*** Populated data to submitted execution logs*/
-                let data = JSON.parse(event.target.result.toString());
-                console.log(data);
-                let name = data.runbook;
-                let author = "kang2";
-                let time = "sometime";
-                self.rawTableItems.push({
-                    name:name,
-                    author:author,
-                    time:time
-                });
+        const onChange = (event) => {
 
-                let newTableItems = new ArrayItemProvider<ITableItem>(self.rawTableItems);
+            var self = this;
+ 
+             var file = event.target.files[0];
+             var reader = new FileReader();
            
-                console.log(newTableItems);
-                self.setState(
-                    {
-                    tableItems: newTableItems
-                    }
-                    
-                );
-
-                /****Populate data to detail execution logs */
-                for(let i =0; i<data.tasks.length; i++) {
-
-                    let nameDetail = data.tasks[i].task;
-                    let timeTaken = data.tasks[i].timeTaken;
-                    let status = data.tasks[i].status;
-
-                    console.log(nameDetail,timeTaken,status);
-
-                    if(status == "Done") {
-                        self.rawTableItemsDetail.push({
-                            time: timeTaken,
-                            name: {
-                                iconProps: { render: renderStatusSuccess }, text: nameDetail
+ 
+             reader.onload = function(event) {
+        
+               /*** Populated data to submitted execution logs*/
+            
+                if(event !=null) { 
+                    if(event.target != null) {
+                        if(event.target.result != null) {
+                            let data: any = JSON.parse((event.target.result).toString());
+                            
+                            if(data != null) {
+            
+                        
+                           // console.log(data);
+                            let name = data.runbook;
+                            let author = "kang2";
+                            let time = "sometime";
+                            self.rawTableItems.push({
+                                name:name,
+                                author:author,
+                                time:time
+                            });
+            
+                            let newTableItems = new ArrayItemProvider<ITableItem>(self.rawTableItems);
+                       
+                            console.log(newTableItems);
+                            self.setState(
+                                {
+                                tableItems: newTableItems
+                                }
+                                
+                            );
+            
+                            /****Populate data to detail execution logs */
+                            for(let i =0; i<data.tasks.length; i++) {
+            
+                                let nameDetail = data.tasks[i].task;
+                                let timeTaken = data.tasks[i].timeTaken;
+                                let status = data.tasks[i].status;
+            
+                                console.log(nameDetail,timeTaken,status);
+            
+                                if(status == "Done") {
+                                    self.rawTableItemsDetail.push({
+                                        time: timeTaken,
+                                        name: {
+                                            iconProps: { render: renderStatusSuccess }, text: nameDetail
+                                        }
+                                    });
+                                }else if(status == "Skip") {
+                                    self.rawTableItemsDetail.push({
+                                        time: timeTaken,
+                                        name: {
+                                            iconProps: { render: renderStatusSkipped }, text: nameDetail
+                                        }
+                                    });
+                                }
+                                
+            
                             }
-                        });
-                    }else if(status == "Skip") {
-                        self.rawTableItemsDetail.push({
-                            time: timeTaken,
-                            name: {
-                                iconProps: { render: renderStatusSkipped }, text: nameDetail
+            
+                            let newTableItemsDetail = new ArrayItemProvider<ITableItemDetail>(self.rawTableItemsDetail);
+            
+                            // console.log(self.rawTableItemsDetail);
+                            // console.log(newTableItemsDetail);
+                            self.setState(
+                                {
+                                    tableItemDetail: newTableItemsDetail
+                                }
+                                
+                            );
+            
+                            // self.setState({tableItemDetail: new ArrayItemProvider<ITableItemDetail>([])}, () => {
+                            //             return {
+                            //                 tableItemDetail: newTableItemsDetail
+                            //             }
+                            // });
+                        
+            
+                            // self.setState(
+                            //     prevState => {
+                                    
+                            //             return {
+                            //                 tableItemDetail: newTableItemsDetail
+                            //             }
+                                
+                                   
+                            //     }
+                            // );
                             }
-                        });
-                    }
-                    
+                        
 
+
+                        }
+                    }
                 }
+                
+ 
+ 
+             };
+           
+             reader.readAsText(file);
+         };
+         
+             
 
-                let newTableItemsDetail = new ArrayItemProvider<ITableItemDetail>(self.rawTableItemsDetail);
-
-                // console.log(self.rawTableItemsDetail);
-                // console.log(newTableItemsDetail);
-                self.setState(
-                    {
-                        tableItemDetail: newTableItemsDetail
-                    }
-                    
-                );
-
-
-            };
+       
           
-            reader.readAsText(file);
-            
-            
-          }
 
 
         return (
