@@ -206,21 +206,21 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
     //data used in the submitted execution logs
     private rawTableItems: ITableItem[] = [
-        {
-            time: "50",
-            author: "Kang",
-            name: "Run version 1"
-        }
+        // {
+        //     time: "50",
+        //     author: "Kang",
+        //     name: "Run version 1"
+        // }
         
     ];
     
     //data used in the detailed execution logs
     //may need to use another obj to do logic to render status conditionally
     private rawTableItemsDetail: ITableItemDetail[] = [
-        {
-            time: "50",
-            name: { iconProps: { render: renderStatusFailed }, text: "Rory Boisvert" }
-        }
+        // {
+        //     time: "50",
+        //     name: { iconProps: { render: renderStatusFailed }, text: "Rory Boisvert" }
+        // }
         
     ];
 
@@ -241,6 +241,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
            return newItem;
        })
    );
+
+   private fileUploaderEvent: any;
 
 
 
@@ -267,7 +269,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
         // });
        
     }
-    
+
+
 
     
 
@@ -278,116 +281,152 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
             
         };
 
-        const onChange = (event) => {
+        const onSave = () => {
 
             var self = this;
- 
-             var file = event.target.files[0];
-             var reader = new FileReader();
-           
- 
-             reader.onload = function(event) {
+            self.setState(
+                {
+                tableItems:  self.tableItems
+                }
+                
+            );
+
+            self.setState(
+                prevState => {
+
+                    console.log("Previous state is: ", prevState);
+
+                        return {
+                            tableItemDetail: self.tableItemsDetail
+                        }
+                    
+                }
+            );
+            
+            this.isDialogOpen.value = false;
+
+        }
+
         
-               /*** Populated data to submitted execution logs*/
-            
-                if(event !=null) { 
-                    if(event.target != null) {
-                        if(event.target.result != null) {
-                            let data: any = JSON.parse((event.target.result).toString());
+
+       const onChange = (event) => {
+
+       
+        console.log('Saved file');
+
+        var self = this;
+
+         var file = event.target.files[0];
+         var reader = new FileReader();
+
+
+         reader.onload = function(event) {
+    
+           /*** Populated data to submitted execution logs*/
+        
+            if(event !=null) { 
+                if(event.target != null) {
+                    if(event.target.result != null) {
+                        let data: any = JSON.parse((event.target.result).toString());
+                        
+                        if(data != null) {
+        
+                    
+                        //console.log(data);
+                        let name = data.runbook;
+                        let author = "kang2";
+                        let time = "sometime";
+                        self.rawTableItems.push({
+                            name:name,
+                            author:author,
+                            time:time
+                        });
+        
+                        let newTableItems = new ArrayItemProvider<ITableItem>(self.rawTableItems);
+
+                        //update tableItems var
+                        self.tableItems = newTableItems;
+                   
+                        console.log(newTableItems);
+                        // self.setState(
+                        //     {
+                        //     tableItems: newTableItems
+                        //     }
                             
-                            if(data != null) {
-            
-                        
-                            //console.log(data);
-                            let name = data.runbook;
-                            let author = "kang2";
-                            let time = "sometime";
-                            self.rawTableItems.push({
-                                name:name,
-                                author:author,
-                                time:time
-                            });
-            
-                            let newTableItems = new ArrayItemProvider<ITableItem>(self.rawTableItems);
-                       
-                            console.log(newTableItems);
-                            self.setState(
-                                {
-                                tableItems: newTableItems
-                                }
-                                
-                            );
-            
-                            /****Populate data to detail execution logs */
-                            for(let i =0; i<data.tasks.length; i++) {
-            
-                                let nameDetail = data.tasks[i].task;
-                                let timeTaken = data.tasks[i].timeTaken;
-                                let status = data.tasks[i].status;
-            
-                                console.log(nameDetail,timeTaken,status);
-            
-                                if(status == "Done") {
-                                    self.rawTableItemsDetail.push({
-                                        time: timeTaken,
-                                        name: {
-                                            iconProps: { render: renderStatusSuccess }, text: nameDetail
-                                        }
-                                    });
-                                }else if(status == "Skip") {
-                                    self.rawTableItemsDetail.push({
-                                        time: timeTaken,
-                                        name: {
-                                            iconProps: { render: renderStatusSkipped }, text: nameDetail
-                                        }
-                                    });
-                                }
-                                
-            
+                        // );
+        
+                        /****Populate data to detail execution logs */
+                        self.rawTableItemsDetail = [];
+                        for(let i =0; i<data.tasks.length; i++) {
+        
+                            let nameDetail = data.tasks[i].task;
+                            let timeTaken = data.tasks[i].timeTaken;
+                            let status = data.tasks[i].status;
+        
+                            console.log(nameDetail,timeTaken,status);
+        
+                            if(status == "Done") {
+                                self.rawTableItemsDetail.push({
+                                    time: timeTaken,
+                                    name: {
+                                        iconProps: { render: renderStatusSuccess }, text: nameDetail
+                                    }
+                                });
+                            }else if(status == "Skip") {
+                                self.rawTableItemsDetail.push({
+                                    time: timeTaken,
+                                    name: {
+                                        iconProps: { render: renderStatusSkipped }, text: nameDetail
+                                    }
+                                });
                             }
-            
-                            let newTableItemsDetail = new ArrayItemProvider<ITableItemDetail>(self.rawTableItemsDetail);
-            
-                            // console.log(self.rawTableItemsDetail);
-                            // console.log(newTableItemsDetail);
-                            self.setState(
-                                {
-                                    tableItemDetail: newTableItemsDetail
-                                }
+                            
+        
+                        }
+        
+                        let newTableItemsDetail = new ArrayItemProvider<ITableItemDetail>(self.rawTableItemsDetail);
+        
+                        //update tableItemsDetail var
+                        self.tableItemsDetail = newTableItemsDetail;
+
+
+                        console.log("table items detail var: ",self.tableItemsDetail);
+                    
+        
+                        // self.setState(
+                        //     prevState => {
+
+                        //         console.log("Previous state is: ", prevState);
+
+                        //             return {
+                        //                 tableItemDetail: newTableItemsDetail
+                        //             }
                                 
-                            );
-            
-                            // self.setState({tableItemDetail: new ArrayItemProvider<ITableItemDetail>([])}, () => {
-                            //             return {
-                            //                 tableItemDetail: newTableItemsDetail
-                            //             }
-                            // });
-                        
-            
-                            // self.setState(
-                            //     prevState => {
-                                    
-                            //             return {
-                            //                 tableItemDetail: newTableItemsDetail
-                            //             }
-                                
-                                   
-                            //     }
-                            // );
-                            }
-                        
+                        //     }
+                        // );
+
+                        console.log("State after update: ",self.state);
 
 
                         }
+                    
+
+
                     }
                 }
-                
- 
- 
-             };
-           
-             reader.readAsText(file);
+            }
+            
+
+
          };
+
+        
+       
+         reader.readAsText(file);
+
+
+         
+    };
          
              
 
@@ -461,11 +500,12 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                                     },
                                     {
                                         text: "Save",
-                                        onClick: onDismiss,
+                                        onClick: onSave,
                                         primary: true
                                     }
                                 ]}
                                 onDismiss={onDismiss}
+                                
                             >
                                 Please select a file:
                                 
