@@ -298,7 +298,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                             if(data != null) {
             
                         
-                           // console.log(data);
+                            //console.log(data);
                             let name = data.runbook;
                             let author = "kang2";
                             let time = "sometime";
