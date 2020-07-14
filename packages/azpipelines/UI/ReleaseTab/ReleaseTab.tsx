@@ -2,12 +2,16 @@ import * as React from "react";
 import * as SDK from "azure-devops-extension-sdk";
 
 
+
+
 import { showRootComponent } from "../Common";
 import  TableComponent, { tableItems } from "../TableComponent/TableComponent";
 
 
 import { getClient } from "azure-devops-extension-api";
 import { CoreRestClient, ProjectVisibility, TeamProjectReference } from "azure-devops-extension-api/Core";
+
+import { ReleaseRestClient } from "azure-devops-extension-api/Release";
 
 
 import { ArrayItemProvider } from "azure-devops-ui/Utilities/Provider";
@@ -261,12 +265,27 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
     }
 
     private async initializeComponent() {
-        //const projects = await getClient(CoreRestClient).getProjects();
+        const projects = await getClient(CoreRestClient).getProjects();
+        
+        const project = projects.find(x => x.id === "cb898a3e-2c0b-4815-adab-21b9c9333002");
+
+        const releases = await getClient(ReleaseRestClient).getReleases();
+
+         const queryString = window.location.search;
+
+        console.log(queryString);
+        //const releaseId = await getClient(ReleaseRestClient).;
+        
         // let projects = [];
         // this.setState({
         //     contentsFromFile: new ArrayItemProvider([]),
         //     tableItems: new ArrayItemProvider([])
         // });
+
+        console.log("Projects are: ", projects);
+        console.log("Releases are: ", releases);
+        
+
        
     }
 
@@ -284,6 +303,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
         const onSave = () => {
 
             var self = this;
+
             self.setState(
                 {
                 tableItems:  self.tableItems
@@ -302,7 +322,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                     
                 }
             );
-            
+
             this.isDialogOpen.value = false;
 
         }
