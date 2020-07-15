@@ -11,7 +11,7 @@ import  TableComponent, { tableItems } from "../TableComponent/TableComponent";
 import { getClient } from "azure-devops-extension-api";
 import { CoreRestClient, ProjectVisibility, TeamProjectReference } from "azure-devops-extension-api/Core";
 
-import { ReleaseRestClient } from "azure-devops-extension-api/Release";
+import { ReleaseRestClient, Release } from "azure-devops-extension-api/Release";
 
 
 import { ArrayItemProvider } from "azure-devops-ui/Utilities/Provider";
@@ -248,6 +248,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
    private fileUploaderEvent: any;
 
+   private releaseObj;
 
 
     constructor(props: {}) {
@@ -266,14 +267,23 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
     private async initializeComponent() {
         const projects = await getClient(CoreRestClient).getProjects();
-        
-        const project = projects.find(x => x.id === "cb898a3e-2c0b-4815-adab-21b9c9333002");
+
+
+        const projectId = "cb898a3e-2c0b-4815-adab-21b9c9333002";
+        const project = projects.find(x => x.id === projectId);
 
         const releases = await getClient(ReleaseRestClient).getReleases();
 
-         const queryString = window.location.search;
+        //const queryString = window.location;
 
-        console.log(queryString);
+        //just a hard code release ID example
+        const releaseId = 79;
+
+        let release = await getClient(ReleaseRestClient).getRelease(projectId, releaseId);
+
+        this.releaseObj = release;
+
+        //console.log(queryString);
         //const releaseId = await getClient(ReleaseRestClient).;
         
         // let projects = [];
@@ -283,7 +293,9 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
         // });
 
         console.log("Projects are: ", projects);
+        console.log("Project is: ", project);
         console.log("Releases are: ", releases);
+        console.log("Release is: ", release);
         
 
        
@@ -300,7 +312,9 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
             
         };
 
-        const onSave = () => {
+       
+
+       const onSave = async () => {
 
             var self = this;
 
@@ -323,7 +337,38 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                 }
             );
 
-            this.isDialogOpen.value = false;
+            console.log(self.releaseObj);
+
+            self.releaseObj.properties.tableItems = self.tableItems;
+            self.releaseObj.properties.tableItemsDetail = self.tableItemsDetail;
+
+            let releaseGot = await getClient(ReleaseRestClient).getRelease("cb898a3e-2c0b-4815-adab-21b9c9333002", 79);
+
+            // releaseGot.properties.tableItems = self.tableItems;
+            // releaseGot.properties.tableItemsDetail = self.tableItemsDetail;
+
+            releaseGot.properties = {
+           
+               
+            }
+
+            //releaseGot.description = "Updated description";
+            
+
+
+
+             console.log("releaseGot is: ", releaseGot);
+
+            let release = await getClient(ReleaseRestClient).updateRelease(releaseGot, "cb898a3e-2c0b-4815-adab-21b9c9333002", 79);
+
+            //let releaseGot2 = await getClient(ReleaseRestClient).getRelease("cb898a3e-2c0b-4815-adab-21b9c9333002", 79);
+
+           
+
+            console.log("After update release: ",release);
+            console.log("After update releaseObj: ",self.releaseObj);
+
+            self.isDialogOpen.value = false;
 
         }
 
