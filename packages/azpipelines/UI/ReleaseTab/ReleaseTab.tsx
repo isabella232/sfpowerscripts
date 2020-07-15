@@ -12,6 +12,7 @@ import { getClient } from "azure-devops-extension-api";
 import { CoreRestClient, ProjectVisibility, TeamProjectReference } from "azure-devops-extension-api/Core";
 
 import { ReleaseRestClient, Release } from "azure-devops-extension-api/Release";
+import {ExtensionManagementRestClient} from "azure-devops-extension-api/ExtensionManagement";
 
 
 import { ArrayItemProvider } from "azure-devops-ui/Utilities/Provider";
@@ -64,6 +65,10 @@ export interface ITableItemDetail extends ISimpleTableCell {
     time: string;
 }
 
+const PUBLISHER_NAME = "AzlamSalam";
+const EXTENSION_NAME = "sfpowerscripts";
+const SCOPE_TYPE = "Default";
+const SCOPE_VALUE = "Current";
 
 
 const fixedColumns = [
@@ -250,6 +255,10 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
    private releaseObj;
 
+   private fileContent;
+
+   private checkSum;
+
 
     constructor(props: {}) {
         super(props);
@@ -296,6 +305,11 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
         console.log("Project is: ", project);
         console.log("Releases are: ", releases);
         console.log("Release is: ", release);
+
+        
+
+
+        
         
 
        
@@ -337,36 +351,34 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                 }
             );
 
-            console.log(self.releaseObj);
+           // console.log(self.releaseObj);
 
-            self.releaseObj.properties.tableItems = self.tableItems;
-            self.releaseObj.properties.tableItemsDetail = self.tableItemsDetail;
-
-            let releaseGot = await getClient(ReleaseRestClient).getRelease("cb898a3e-2c0b-4815-adab-21b9c9333002", 79);
-
-            // releaseGot.properties.tableItems = self.tableItems;
-            // releaseGot.properties.tableItemsDetail = self.tableItemsDetail;
-
-            releaseGot.properties = {
-           
-               
-            }
-
-            //releaseGot.description = "Updated description";
+            
             
 
-
-
-             console.log("releaseGot is: ", releaseGot);
-
-            let release = await getClient(ReleaseRestClient).updateRelease(releaseGot, "cb898a3e-2c0b-4815-adab-21b9c9333002", 79);
-
-            //let releaseGot2 = await getClient(ReleaseRestClient).getRelease("cb898a3e-2c0b-4815-adab-21b9c9333002", 79);
-
            
 
-            console.log("After update release: ",release);
-            console.log("After update releaseObj: ",self.releaseObj);
+           //  console.log("releaseGot is: ", releaseGot);
+
+           // let release = await getClient(ReleaseRestClient).updateRelease(releaseGot, "cb898a3e-2c0b-4815-adab-21b9c9333002", 79);
+
+           self.fileContent.id = self.fileContent.checksum.toString();
+          
+        //    console.log(self.fileContent);
+        
+         //convert to json file
+         let jsonContent = JSON.stringify(self.fileContent);
+
+         let jsonContentModified = jsonContent.substring(1,jsonContent.length-1);
+         
+
+         console.log("JSON body: ", jsonContentModified);
+         let document = await getClient(ExtensionManagementRestClient).createDocumentByName(jsonContentModified, PUBLISHER_NAME, EXTENSION_NAME,SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement");
+            
+           
+          console.log("Document created: ", document);
+           // console.log("After update release: ",release);
+           // console.log("After update releaseObj: ",self.releaseObj);
 
             self.isDialogOpen.value = false;
 
@@ -393,9 +405,14 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                 if(event.target != null) {
                     if(event.target.result != null) {
                         let data: any = JSON.parse((event.target.result).toString());
+
+                        //store file content
+                        self.fileContent = data;
                         
                         if(data != null) {
         
+                        //assign checksum
+                        self.checkSum = data.checksum;
                     
                         //console.log(data);
                         let name = data.runbook;
