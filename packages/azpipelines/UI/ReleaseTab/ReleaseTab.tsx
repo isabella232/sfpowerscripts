@@ -66,7 +66,7 @@ export interface ITableItemDetail extends ISimpleTableCell {
 }
 
 const PUBLISHER_NAME = "AzlamSalam";
-const EXTENSION_NAME = "sfpowerscripts";
+const EXTENSION_NAME = "sfpowerscripts-dev";
 const SCOPE_TYPE = "Default";
 const SCOPE_VALUE = "Current";
 
@@ -263,15 +263,49 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
     constructor(props: {}) {
         super(props);
 
+        console.log("Constructor called");
+
          this.state = {
-           tableItems: new ArrayItemProvider([]),
+           tableItems: new ArrayItemProvider([
+        //         {
+        //     time: "50",
+        //     author: "Kang",
+        //     name: "Run version 1"
+        // }
+           ]),
            tableItemDetail: new ArrayItemProvider([])
          };
     }
 
-    public componentDidMount() {
+    public async componentDidMount() {
         SDK.init();
         this.initializeComponent();
+        
+        // .then(response => {
+        //     this.setState({
+        //     tableItems: response.tableItems,
+        //     tableItemDetail: response.tableItemDetail
+        //     });
+
+        //     this.tableItems = response.tableItems;
+        //     this.tableItemsDetail = response.tableItemDetail;
+
+        //     console.log("After promise state: ", this.state);
+        //     //this.forceUpdate();
+        // });
+
+        // let documentId = "79";
+        // //get document based on document Id (release Id)
+        // let doc = await getClient(ExtensionManagementRestClient).getDocumentByName(PUBLISHER_NAME, EXTENSION_NAME, SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement", documentId);
+
+        // this.setState({
+        //     tableItems: doc.tableItems,
+        //     tableItemDetail: doc.tableItemDetail
+        // });
+       // this.forceUpdate();
+
+        console.log("State in componentDidMount: ", this.state);
+       
     }
 
     private async initializeComponent() {
@@ -286,32 +320,43 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
         //const queryString = window.location;
 
         //just a hard code release ID example
-        const releaseId = 79;
+        // const releaseId = 79;
 
-        let release = await getClient(ReleaseRestClient).getRelease(projectId, releaseId);
+        // let release = await getClient(ReleaseRestClient).getRelease(projectId, releaseId);
 
-        this.releaseObj = release;
+        // this.releaseObj = release;
 
         //console.log(queryString);
         //const releaseId = await getClient(ReleaseRestClient).;
         
         // let projects = [];
-        // this.setState({
-        //     contentsFromFile: new ArrayItemProvider([]),
-        //     tableItems: new ArrayItemProvider([])
+       
+
+
+        //this can be fetched via url on release page
+        let documentId = "79";
+        //get document based on document Id (release Id)
+        let doc = await getClient(ExtensionManagementRestClient).getDocumentByName(PUBLISHER_NAME, EXTENSION_NAME, SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement", documentId);
+
+        console.log("Fetched documentis: ", doc);
+
+        // console.log("Projects are: ", projects);
+        // console.log("Project is: ", project);
+        // console.log("Releases are: ", releases);
+        // console.log("Release is: ", release);
+
+
+        //  this.setState({
+        //     tableItems: doc.tableItems,
+        //     tableItemDetail: doc.tableItemDetail
         // });
 
-        console.log("Projects are: ", projects);
-        console.log("Project is: ", project);
-        console.log("Releases are: ", releases);
-        console.log("Release is: ", release);
-
         
 
+        console.log("State in initializeComponent: ", this.state);
 
-        
-        
-
+       // return doc;
+  
        
     }
 
@@ -321,6 +366,11 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
  
     public render(): JSX.Element {
+
+        console.log('render markup called: ',this.state );
+
+       
+        
         const onDismiss = () => {
             this.isDialogOpen.value = false;
             
@@ -351,31 +401,26 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                 }
             );
 
-           // console.log(self.releaseObj);
-
-            
-            
-
-           
-
-           //  console.log("releaseGot is: ", releaseGot);
-
            // let release = await getClient(ReleaseRestClient).updateRelease(releaseGot, "cb898a3e-2c0b-4815-adab-21b9c9333002", 79);
 
-           self.fileContent.id = self.fileContent.checksum.toString();
-          
-        //    console.log(self.fileContent);
-        
-         //convert to json file
-         let jsonContent = JSON.stringify(self.fileContent);
+           //self.fileContent.id = self.fileContent.checksum.toString();
+           //self.fileContent.collection = "ReleaseExtensionManagement";
 
-         let jsonContentModified = jsonContent.substring(1,jsonContent.length-1);
-         
+           //the document id should be release Id on a specific page
+           //self.fileContent.id = "79"
 
-         console.log("JSON body: ", jsonContentModified);
-         let document = await getClient(ExtensionManagementRestClient).createDocumentByName(jsonContentModified, PUBLISHER_NAME, EXTENSION_NAME,SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement");
-            
-           
+
+
+         let documentToBeSent = {
+            id: "79",
+            tableItems:  self.tableItems,
+            tableItemDetail: self.tableItemsDetail
+         }
+
+   
+         console.log("JSON body: ", self.fileContent);
+          let document = await getClient(ExtensionManagementRestClient).createDocumentByName(documentToBeSent, PUBLISHER_NAME, EXTENSION_NAME,SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement");
+         //let document = await getClient(ExtensionManagementRestClient).deleteDocumentByName(PUBLISHER_NAME,EXTENSION_NAME,SCOPE_TYPE,SCOPE_VALUE, "ReleaseExtensionManagement", "79");
           console.log("Document created: ", document);
            // console.log("After update release: ",release);
            // console.log("After update releaseObj: ",self.releaseObj);
@@ -388,6 +433,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
        const onChange = (event) => {
 
+        //console.log("OnChange state: ", this. state);
        
         console.log('Saved file');
 
@@ -517,8 +563,10 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
 
         return (
+         
             <div>
-            
+                
+    
                 <div className="open-dialog-btn" style={{textAlign: 'right'}}>
                 <Button
                             text="Submit an execution log"
@@ -542,8 +590,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                     <Card className="flex-grow bolt-table-card" contentProps={{ contentPadding: false }}>
                          <Table ariaLabel="Basic Table" columns={fixedColumns} itemProvider={this.state.tableItems} role="table" />
                     </Card>
-                  
-                    
+
 
                 </div>
 
