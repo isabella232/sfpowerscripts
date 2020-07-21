@@ -259,6 +259,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
    private checkSum;
 
+   private flag;
+
 
     constructor(props: {}) {
         super(props);
@@ -275,11 +277,21 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
            ]),
            tableItemDetail: new ArrayItemProvider([])
          };
+
+        // this.flag = true;
     }
 
     public async componentDidMount() {
+
         SDK.init();
-        this.initializeComponent();
+        SDK.ready().then(() => {
+
+            this.initializeComponent();            
+
+        });
+       
+        //if(this.flag)
+        // this.initializeComponent();
         
         // .then(response => {
         //     this.setState({
@@ -309,13 +321,15 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
     }
 
     private async initializeComponent() {
-        const projects = await getClient(CoreRestClient).getProjects();
+
+    
+        // const projects = await getClient(CoreRestClient).getProjects();
 
 
-        const projectId = "cb898a3e-2c0b-4815-adab-21b9c9333002";
-        const project = projects.find(x => x.id === projectId);
+        // const projectId = "cb898a3e-2c0b-4815-adab-21b9c9333002";
+        // const project = projects.find(x => x.id === projectId);
 
-        const releases = await getClient(ReleaseRestClient).getReleases();
+        // const releases = await getClient(ReleaseRestClient).getReleases();
 
         //const queryString = window.location;
 
@@ -340,16 +354,24 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
         console.log("Fetched documentis: ", doc);
 
-        // console.log("Projects are: ", projects);
-        // console.log("Project is: ", project);
-        // console.log("Releases are: ", releases);
-        // console.log("Release is: ", release);
+        this.setState(
+            prevState => {
 
+                console.log("Previous state is: ", prevState);
 
-        //  this.setState({
-        //     tableItems: doc.tableItems,
-        //     tableItemDetail: doc.tableItemDetail
-        // });
+                console.log("doc tableItems are: ", doc.tableItems);
+
+                    return {
+                        tableItems: new ArrayItemProvider(
+                                    doc.tableItems.items
+                               ),
+                        tableItemDetail: new ArrayItemProvider(
+                            doc.tableItemDetail.items
+                       )
+                    }
+                
+            }
+        );
 
         
 
@@ -382,12 +404,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
             var self = this;
 
-            self.setState(
-                {
-                tableItems:  self.tableItems
-                }
-                
-            );
+            //self.flag = false;
 
             self.setState(
                 prevState => {
@@ -395,6 +412,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                     console.log("Previous state is: ", prevState);
 
                         return {
+                            tableItems:  self.tableItems,
                             tableItemDetail: self.tableItemsDetail
                         }
                     
@@ -419,7 +437,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
    
          console.log("JSON body: ", self.fileContent);
-          let document = await getClient(ExtensionManagementRestClient).createDocumentByName(documentToBeSent, PUBLISHER_NAME, EXTENSION_NAME,SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement");
+        //  let document = await getClient(ExtensionManagementRestClient).createDocumentByName(documentToBeSent, PUBLISHER_NAME, EXTENSION_NAME,SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement");
          //let document = await getClient(ExtensionManagementRestClient).deleteDocumentByName(PUBLISHER_NAME,EXTENSION_NAME,SCOPE_TYPE,SCOPE_VALUE, "ReleaseExtensionManagement", "79");
           console.log("Document created: ", document);
            // console.log("After update release: ",release);
