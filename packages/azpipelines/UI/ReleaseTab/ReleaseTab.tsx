@@ -50,6 +50,7 @@ interface IPivotContentState {
     contentsFromFile?: ArrayItemProvider<any>;
     tableItems?: ArrayItemProvider<ITableItem>;
     tableItemDetail?: ArrayItemProvider<ITableItemDetail>;
+    isClicked?: Boolean;
    
     
 }
@@ -58,11 +59,13 @@ export interface ITableItem extends ISimpleTableCell {
     name: string;
     author: string;
     time: string;
+    checksum: number;
 }
 
 export interface ITableItemDetail extends ISimpleTableCell {
     name: ISimpleListCell;
     time: string;
+    checksum: number;
 }
 
 const PUBLISHER_NAME = "AzlamSalam";
@@ -272,13 +275,16 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
         //         {
         //     time: "50",
         //     author: "Kang",
-        //     name: "Run version 1"
+        //     name: "Run version 1",
+        //     checksum: 22
         // }
            ]),
-           tableItemDetail: new ArrayItemProvider([])
+           tableItemDetail: new ArrayItemProvider([]),
+           isClicked: false
          };
 
         // this.flag = true;
+      
     }
 
     public async componentDidMount() {
@@ -286,7 +292,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
         SDK.init();
         SDK.ready().then(() => {
 
-            this.initializeComponent();            
+           this.initializeComponent();            
 
         });
        
@@ -354,19 +360,37 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
         console.log("Fetched documentis: ", doc);
 
+
+        //initialize raw table items
+        // this.rawTableItems = doc.tableItems.items;
+        // this.rawTableItemsDetail = doc.tableItemDetail.items;
+
+        for(let i=0; i<doc.logInfo.length; i++) {
+            this.rawTableItems = [...doc.logInfo[i].tableItems.items, ...this.rawTableItems];
+            
+            // for(let j=0; j<doc.logInfo[i].tableItemDetail.items.length; j++) {
+            //     this.rawTableItemsDetail.push(doc.logInfo[i].tableItemDetail.items[j]);
+            // }
+            this.rawTableItemsDetail = [...doc.logInfo[i].tableItemDetail.items, ...this.rawTableItemsDetail];
+            
+        }
+
+        console.log("Raw table items: ", this.rawTableItems);
+
+
         this.setState(
             prevState => {
 
                 console.log("Previous state is: ", prevState);
 
-                console.log("doc tableItems are: ", doc.tableItems);
 
                     return {
                         tableItems: new ArrayItemProvider(
-                                    doc.tableItems.items
+                            this.rawTableItems
                                ),
                         tableItemDetail: new ArrayItemProvider(
-                            doc.tableItemDetail.items
+                            // doc.logInfo[0].tableItemDetail.items
+                            this.rawTableItemsDetail
                        )
                     }
                 
@@ -404,42 +428,36 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
             var self = this;
 
-            //self.flag = false;
-
-            self.setState(
-                prevState => {
-
-                    console.log("Previous state is: ", prevState);
-
-                        return {
-                            tableItems:  self.tableItems,
-                            tableItemDetail: self.tableItemsDetail
-                        }
-                    
-                }
-            );
-
-           // let release = await getClient(ReleaseRestClient).updateRelease(releaseGot, "cb898a3e-2c0b-4815-adab-21b9c9333002", 79);
-
-           //self.fileContent.id = self.fileContent.checksum.toString();
-           //self.fileContent.collection = "ReleaseExtensionManagement";
-
-           //the document id should be release Id on a specific page
-           //self.fileContent.id = "79"
+            
 
 
+            self.setState({
+                tableItems:  self.tableItems,
+                tableItemDetail: self.tableItemsDetail
 
-         let documentToBeSent = {
+            });
+        
+
+        //  let documentToBeSent = {
+        //     id: "79",
+        //     tableItems:  self.tableItems,
+        //     tableItemDetail: self.tableItemsDetail
+        //  }
+
+        let docToBeSent = {
             id: "79",
-            tableItems:  self.tableItems,
-            tableItemDetail: self.tableItemsDetail
-         }
-
+            logInfo: [{
+                tableItems:  self.tableItems,
+                tableItemDetail: self.tableItemsDetail
+            }]
+        }
    
          console.log("JSON body: ", self.fileContent);
-        //  let document = await getClient(ExtensionManagementRestClient).createDocumentByName(documentToBeSent, PUBLISHER_NAME, EXTENSION_NAME,SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement");
+         //let document = await getClient(ExtensionManagementRestClient).createDocumentByName(documentToBeSent, PUBLISHER_NAME, EXTENSION_NAME,SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement");
          //let document = await getClient(ExtensionManagementRestClient).deleteDocumentByName(PUBLISHER_NAME,EXTENSION_NAME,SCOPE_TYPE,SCOPE_VALUE, "ReleaseExtensionManagement", "79");
-          console.log("Document created: ", document);
+          
+         let document = await getClient(ExtensionManagementRestClient).setDocumentByName(docToBeSent,PUBLISHER_NAME,EXTENSION_NAME,SCOPE_TYPE,SCOPE_VALUE,"ReleaseExtensionManagement");
+         console.log("Document created: ", document);
            // console.log("After update release: ",release);
            // console.log("After update releaseObj: ",self.releaseObj);
 
@@ -485,21 +503,18 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                         self.rawTableItems.push({
                             name:name,
                             author:author,
-                            time:time
+                            time:time,
+                            checksum: data.checksum
                         });
         
                         let newTableItems = new ArrayItemProvider<ITableItem>(self.rawTableItems);
 
+                        //self.tableItems
                         //update tableItems var
                         self.tableItems = newTableItems;
                    
-                        console.log(newTableItems);
-                        // self.setState(
-                        //     {
-                        //     tableItems: newTableItems
-                        //     }
-                            
-                        // );
+                        console.log("New itens to be added: ",newTableItems);
+                       
         
                         /****Populate data to detail execution logs */
                         self.rawTableItemsDetail = [];
@@ -513,6 +528,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
         
                             if(status == "Done") {
                                 self.rawTableItemsDetail.push({
+                                    checksum: data.checksum,
                                     time: timeTaken,
                                     name: {
                                         iconProps: { render: renderStatusSuccess }, text: nameDetail
@@ -520,6 +536,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                                 });
                             }else if(status == "Skip") {
                                 self.rawTableItemsDetail.push({
+                                    checksum: data.checksum,
                                     time: timeTaken,
                                     name: {
                                         iconProps: { render: renderStatusSkipped }, text: nameDetail
@@ -573,6 +590,53 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
          
     };
+
+    const hanldeRowClick = async data => {
+
+        let d = JSON.stringify(data.data);
+
+        console.log(d);
+
+        this.setState({
+            isClicked:true
+        });
+
+        let checksum = data.data.checksum;
+
+        if(this.state.tableItemDetail)
+        console.log("State in handleClick: ",this.state.tableItemDetail.length);
+
+        // for(let i = 0; i<this.state.tableItemDetail.length; i++) {
+
+        // }
+
+         //this can be fetched via url on release page
+         let documentId = "79";
+         //get document based on document Id (release Id)
+         let doc = await getClient(ExtensionManagementRestClient).getDocumentByName(PUBLISHER_NAME, EXTENSION_NAME, SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement", documentId);
+ 
+         console.log("Doc on handleClick: ", doc.logInfo[0].tableItemDetail.items.length);
+
+         let detailItemTobeDisplayed: ITableItemDetail[] = [];
+
+         for(let i=0; i<doc.logInfo.length; i++) {
+             for(let j=0; j<doc.logInfo[i].tableItemDetail.items.length; j++) {
+                 if(doc.logInfo[i].tableItemDetail.items[j].checksum.toString() == checksum.toString()) {
+                    detailItemTobeDisplayed = [...detailItemTobeDisplayed, doc.logInfo[i].tableItemDetail.items[j]]
+                    //detailItemTobeDisplayed.push(doc.logInfo[i].tableItemDetail.items[j]);
+                 }
+             }
+         }
+
+         console.log("Detail item to be displayed: ", detailItemTobeDisplayed);
+
+         this.setState({
+            tableItemDetail: new ArrayItemProvider(
+                detailItemTobeDisplayed
+           )
+        });
+
+    }
          
              
 
@@ -606,9 +670,9 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
                    
                     <Card className="flex-grow bolt-table-card" contentProps={{ contentPadding: false }}>
-                         <Table ariaLabel="Basic Table" columns={fixedColumns} itemProvider={this.state.tableItems} role="table" />
+                         <Table ariaLabel="Basic Table" columns={fixedColumns} itemProvider={this.state.tableItems} role="table" 
+                        onSelect={(event, data) => hanldeRowClick(data)}/>
                     </Card>
-
 
                 </div>
 
@@ -620,7 +684,9 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                         titleSize={TitleSize.Medium}
                        
                     />
-
+            {
+                this.state.isClicked ?
+                <div>
                     <div style={{textAlign: 'right'}}>
                            <p> Started at: xxxxx</p>
                            <p> Finished in:xxxxx </p>
@@ -629,7 +695,9 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                     <Card className="flex-grow bolt-table-card" contentProps={{ contentPadding: false }}>
                          <Table ariaLabel="Basic Table" columns={fixedColumnsDetail} itemProvider={this.state.tableItemDetail} role="table" />
                     </Card>
-                  
+                </div>
+                : <p>Nothing</p>
+            }
 
                 </div>
 
