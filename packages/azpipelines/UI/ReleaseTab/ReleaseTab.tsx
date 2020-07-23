@@ -66,6 +66,12 @@ export interface ITableItemDetail extends ISimpleTableCell {
     name: ISimpleListCell;
     time: string;
     checksum: number;
+    status?: any;
+}
+
+export interface documentForRelease {
+    id: string,
+    logInfo: any
 }
 
 const PUBLISHER_NAME = "AzlamSalam";
@@ -112,7 +118,7 @@ const fixedColumnsDetail = [
         name: "Name",
         readonly: true,
         renderCell: renderSimpleCell,
-        width: new ObservableValue(200)
+        width: new ObservableValue(500)
     },
     ColumnFill
     ,
@@ -236,8 +242,13 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
         
     ];
 
+    private rawTableItemsNewlyAdded: ITableItem[] = [];
+
 
     private tableItems = new ArrayItemProvider<ITableItem>(this.rawTableItems);
+
+    private tableItemsNewlyAdded = new ArrayItemProvider<ITableItem>(this.rawTableItemsNewlyAdded);
+
     private tableItemsNoIcons = new ArrayItemProvider<ITableItem>(
        this.rawTableItems.map((item: ITableItem) => {
            const newItem = Object.assign({}, item);
@@ -356,46 +367,81 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
         //this can be fetched via url on release page
         let documentId = "79";
         //get document based on document Id (release Id)
-        let doc = await getClient(ExtensionManagementRestClient).getDocumentByName(PUBLISHER_NAME, EXTENSION_NAME, SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement", documentId);
+        let docs = await getClient(ExtensionManagementRestClient).getDocumentsByName(PUBLISHER_NAME,EXTENSION_NAME,SCOPE_TYPE,SCOPE_VALUE, "ReleaseExtensionManagement");
 
-        console.log("Fetched documentis: ", doc);
+        console.log("Documents of ReleaseExtensionManagement: ", docs);
+
+        //let doc:documentForRelease;
+        for(let i=0; i<docs.length; i++) {
+            if(docs[i].id == documentId) {
+                 let doc = await getClient(ExtensionManagementRestClient).getDocumentByName(PUBLISHER_NAME, EXTENSION_NAME, SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement", documentId);
+
+                 for(let i=0; i<doc.logInfo.length; i++) {
+                    this.rawTableItems = [...doc.logInfo[i].tableItems.items, ...this.rawTableItems];
+                    this.rawTableItemsDetail = [...doc.logInfo[i].tableItemDetail.items, ...this.rawTableItemsDetail];
+                    
+                }
+        
+                console.log("Raw table items: ", this.rawTableItems);
+        
+        
+                this.setState(
+                    prevState => {
+        
+                        console.log("Previous state is: ", prevState);
+        
+        
+                            return {
+                                tableItems: new ArrayItemProvider(
+                                    this.rawTableItems
+                                       ),
+                                tableItemDetail: new ArrayItemProvider(
+                                    // doc.logInfo[0].tableItemDetail.items
+                                    this.rawTableItemsDetail
+                               )
+                            }
+                        
+                    }
+                );
+            }
+        }
+        
+        //let doc = await getClient(ExtensionManagementRestClient).getDocumentByName(PUBLISHER_NAME, EXTENSION_NAME, SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement", documentId);
+
+        //console.log("Fetched documentis: ", doc);
 
 
         //initialize raw table items
         // this.rawTableItems = doc.tableItems.items;
         // this.rawTableItemsDetail = doc.tableItemDetail.items;
 
-        for(let i=0; i<doc.logInfo.length; i++) {
-            this.rawTableItems = [...doc.logInfo[i].tableItems.items, ...this.rawTableItems];
+        // for(let i=0; i<doc.logInfo.length; i++) {
+        //     this.rawTableItems = [...doc.logInfo[i].tableItems.items, ...this.rawTableItems];
+        //     this.rawTableItemsDetail = [...doc.logInfo[i].tableItemDetail.items, ...this.rawTableItemsDetail];
             
-            // for(let j=0; j<doc.logInfo[i].tableItemDetail.items.length; j++) {
-            //     this.rawTableItemsDetail.push(doc.logInfo[i].tableItemDetail.items[j]);
-            // }
-            this.rawTableItemsDetail = [...doc.logInfo[i].tableItemDetail.items, ...this.rawTableItemsDetail];
-            
-        }
+        // }
 
-        console.log("Raw table items: ", this.rawTableItems);
+        // console.log("Raw table items: ", this.rawTableItems);
 
 
-        this.setState(
-            prevState => {
+        // this.setState(
+        //     prevState => {
 
-                console.log("Previous state is: ", prevState);
+        //         console.log("Previous state is: ", prevState);
 
 
-                    return {
-                        tableItems: new ArrayItemProvider(
-                            this.rawTableItems
-                               ),
-                        tableItemDetail: new ArrayItemProvider(
-                            // doc.logInfo[0].tableItemDetail.items
-                            this.rawTableItemsDetail
-                       )
-                    }
+        //             return {
+        //                 tableItems: new ArrayItemProvider(
+        //                     this.rawTableItems
+        //                        ),
+        //                 tableItemDetail: new ArrayItemProvider(
+        //                     // doc.logInfo[0].tableItemDetail.items
+        //                     this.rawTableItemsDetail
+        //                )
+        //             }
                 
-            }
-        );
+        //     }
+        // );
 
         
 
@@ -428,36 +474,111 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
             var self = this;
 
-            
-
-
             self.setState({
                 tableItems:  self.tableItems,
                 tableItemDetail: self.tableItemsDetail
 
             });
         
+        //get doc of this release
+        let documentId = "79";
 
-        //  let documentToBeSent = {
-        //     id: "79",
+        //all documents in the collection
+        let docs = await getClient(ExtensionManagementRestClient).getDocumentsByName(PUBLISHER_NAME,EXTENSION_NAME,SCOPE_TYPE,SCOPE_VALUE, "ReleaseExtensionManagement");
+
+
+        if(docs.length == 0) {
+            //No document initially
+            let logInfoItem = {
+                tableItems:  self.tableItemsNewlyAdded,
+                tableItemDetail: self.tableItemsDetail
+            }
+    
+            let logInfo = [logInfoItem];
+            let docToBeSent = {
+                id: "79",
+                logInfo: logInfo
+            }
+           let document = await getClient(ExtensionManagementRestClient).createDocumentByName(docToBeSent, PUBLISHER_NAME, EXTENSION_NAME,SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement");
+           console.log("First Document Created: ", document);
+        }else {
+
+             //already had documents in the collection
+            for(let i=0; i<docs.length; i++) {
+                //update the old doc
+                if(docs[i].id == documentId) {
+                    let doc = await getClient(ExtensionManagementRestClient).getDocumentByName(PUBLISHER_NAME, EXTENSION_NAME, SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement", documentId);
+                    let logInfoItem = {
+                        tableItems:  self.tableItemsNewlyAdded,
+                        tableItemDetail: self.tableItemsDetail
+                    }
+            
+                    let logInfo = [...doc.logInfo,logInfoItem];
+                    let docToBeSent = {
+                        id: "79",
+                        logInfo: logInfo
+                    }
+
+                    let document = await getClient(ExtensionManagementRestClient).setDocumentByName(docToBeSent,PUBLISHER_NAME,EXTENSION_NAME,SCOPE_TYPE,SCOPE_VALUE,"ReleaseExtensionManagement");
+                        console.log("Document updated: ", document);
+                        break;
+                }
+
+                //create the new doc if no Id matched
+                if((docs[i].id != documentId) && (i == docs.length-1)) {
+                    let logInfoItem = {
+                        tableItems:  self.tableItemsNewlyAdded,
+                        tableItemDetail: self.tableItemsDetail
+                    }
+                    let docToBeSent = {
+                        id: "79",
+                        logInfo: [logInfoItem]
+                    }
+
+                    let document = await getClient(ExtensionManagementRestClient).createDocumentByName(docToBeSent, PUBLISHER_NAME, EXTENSION_NAME,SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement");
+                    console.log("New Document Created: ", document);
+                    break;
+                }
+
+
+            }
+
+
+        }
+
+
+
+        //let doc = await getClient(ExtensionManagementRestClient).getDocumentByName(PUBLISHER_NAME, EXTENSION_NAME, SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement", documentId);
+
+        // let logInfoItem = {
+        //     tableItems:  self.tableItemsNewlyAdded,
+        //     tableItemDetail: self.tableItemsDetail
+        // }
+
+        // let logInfo = [...doc.logInfo,logInfoItem];
+        
+        // push({
         //     tableItems:  self.tableItems,
         //     tableItemDetail: self.tableItemsDetail
-        //  }
+        // });
 
-        let docToBeSent = {
-            id: "79",
-            logInfo: [{
-                tableItems:  self.tableItems,
-                tableItemDetail: self.tableItemsDetail
-            }]
-        }
+
+        // let docToBeSent = {
+        //     id: "79",
+        //     logInfo: logInfo
+        // }
    
+        
          console.log("JSON body: ", self.fileContent);
+
+
+
+      
          //let document = await getClient(ExtensionManagementRestClient).createDocumentByName(documentToBeSent, PUBLISHER_NAME, EXTENSION_NAME,SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement");
          //let document = await getClient(ExtensionManagementRestClient).deleteDocumentByName(PUBLISHER_NAME,EXTENSION_NAME,SCOPE_TYPE,SCOPE_VALUE, "ReleaseExtensionManagement", "79");
           
-         let document = await getClient(ExtensionManagementRestClient).setDocumentByName(docToBeSent,PUBLISHER_NAME,EXTENSION_NAME,SCOPE_TYPE,SCOPE_VALUE,"ReleaseExtensionManagement");
-         console.log("Document created: ", document);
+        //let document = await getClient(ExtensionManagementRestClient).setDocumentByName(docToBeSent,PUBLISHER_NAME,EXTENSION_NAME,SCOPE_TYPE,SCOPE_VALUE,"ReleaseExtensionManagement");
+         //console.log("Document created: ", document);
            // console.log("After update release: ",release);
            // console.log("After update releaseObj: ",self.releaseObj);
 
@@ -496,6 +617,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                         //assign checksum
                         self.checkSum = data.checksum;
                     
+                        
                         //console.log(data);
                         let name = data.runbook;
                         let author = "kang2";
@@ -506,9 +628,22 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                             time:time,
                             checksum: data.checksum
                         });
+
+
+                        self.rawTableItemsNewlyAdded = [];
+                        self.rawTableItemsNewlyAdded.push({
+                            name:name,
+                            author:author,
+                            time:time,
+                            checksum: data.checksum
+                        })
+
+                        let newTableItemsNewlyAdded = new ArrayItemProvider<ITableItem>(self.rawTableItemsNewlyAdded);
+                        self.tableItemsNewlyAdded = newTableItemsNewlyAdded;
         
                         let newTableItems = new ArrayItemProvider<ITableItem>(self.rawTableItems);
 
+                        
                         //self.tableItems
                         //update tableItems var
                         self.tableItems = newTableItems;
@@ -532,7 +667,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                                     time: timeTaken,
                                     name: {
                                         iconProps: { render: renderStatusSuccess }, text: nameDetail
-                                    }
+                                    },
+                                    status: "Done"
                                 });
                             }else if(status == "Skip") {
                                 self.rawTableItemsDetail.push({
@@ -540,7 +676,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                                     time: timeTaken,
                                     name: {
                                         iconProps: { render: renderStatusSkipped }, text: nameDetail
-                                    }
+                                    },
+                                    status: "Skip"
                                 });
                             }
                             
@@ -597,18 +734,18 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
         console.log(d);
 
-        this.setState({
-            isClicked:true
-        });
+        if(!this.state.isClicked) {
+            this.setState({
+                isClicked:true
+            });
+        }
+       
 
         let checksum = data.data.checksum;
 
         if(this.state.tableItemDetail)
         console.log("State in handleClick: ",this.state.tableItemDetail.length);
 
-        // for(let i = 0; i<this.state.tableItemDetail.length; i++) {
-
-        // }
 
          //this can be fetched via url on release page
          let documentId = "79";
@@ -621,20 +758,58 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
          for(let i=0; i<doc.logInfo.length; i++) {
              for(let j=0; j<doc.logInfo[i].tableItemDetail.items.length; j++) {
-                 if(doc.logInfo[i].tableItemDetail.items[j].checksum.toString() == checksum.toString()) {
+                 if(doc.logInfo[i].tableItemDetail.items[j].checksum.toString() === checksum.toString()) {
                     detailItemTobeDisplayed = [...detailItemTobeDisplayed, doc.logInfo[i].tableItemDetail.items[j]]
-                    //detailItemTobeDisplayed.push(doc.logInfo[i].tableItemDetail.items[j]);
+                    
                  }
              }
          }
 
-         console.log("Detail item to be displayed: ", detailItemTobeDisplayed);
+        console.log("Detail item to be displayed: ", detailItemTobeDisplayed);
+
+
+        let updatedDetailItem: ITableItemDetail[] = [];
+         //check status on detailItemTobeDisplayed
+         for(let i=0; i<detailItemTobeDisplayed.length; i++) {
+             if(detailItemTobeDisplayed[i].hasOwnProperty('status')) {
+                if(detailItemTobeDisplayed[i].status == "Done") {
+                    updatedDetailItem.push({
+                        checksum: detailItemTobeDisplayed[i].checksum,
+                        time: detailItemTobeDisplayed[i].time,
+                        name: {
+                            iconProps: { render: renderStatusSuccess }, text: detailItemTobeDisplayed[i].name.text
+                        },
+                        status: "Done"
+                    });
+                }else if(detailItemTobeDisplayed[i].status == "Skip") {
+                    updatedDetailItem.push({
+                        checksum: detailItemTobeDisplayed[i].checksum,
+                        time: detailItemTobeDisplayed[i].time,
+                        name: {
+                            iconProps: { render: renderStatusSkipped }, text: detailItemTobeDisplayed[i].name.text
+                        },
+                        status: "Done"
+                    });
+                }
+             }
+         }
+
+
 
          this.setState({
             tableItemDetail: new ArrayItemProvider(
-                detailItemTobeDisplayed
+                updatedDetailItem
            )
         });
+
+        // if(this.state.tableItemDetail[0].status == "Done") {
+
+        // }
+
+        // name: {
+        //     iconProps: { render: renderStatusSkipped }, text: nameDetail
+        // }
+        console.log("State in oncliked: ", this.state);
 
     }
          
