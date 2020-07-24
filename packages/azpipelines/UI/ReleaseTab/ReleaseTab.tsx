@@ -11,7 +11,11 @@ import  TableComponent, { tableItems } from "../TableComponent/TableComponent";
 import { getClient } from "azure-devops-extension-api";
 import { CoreRestClient, ProjectVisibility, TeamProjectReference } from "azure-devops-extension-api/Core";
 
-import { ReleaseRestClient, Release } from "azure-devops-extension-api/Release";
+import 
+    { ReleaseRestClient, 
+    Release
+
+} from "azure-devops-extension-api/Release";
 import {ExtensionManagementRestClient} from "azure-devops-extension-api/ExtensionManagement";
 
 
@@ -47,8 +51,22 @@ import { css } from "azure-devops-ui/Util";
 import { Toast } from "azure-devops-ui/Toast";
 
 
+import {
+    BuildRestClient,
+    IBuildPageDataService,
+    BuildServiceIds,
+  } from "azure-devops-extension-api/Build";
 
+  import {
+    IHostPageLayoutService,
+    CommonServiceIds
+  } from "azure-devops-extension-api/Common/CommonServices";
 
+  import {
+    IVssRestClientOptions
+  } from "azure-devops-extension-api/Common/Context";
+
+  
 
 interface IPivotContentState {
     contentsFromFile?: ArrayItemProvider<any>;
@@ -56,6 +74,7 @@ interface IPivotContentState {
     tableItemDetail?: ArrayItemProvider<ITableItemDetail>;
     isClicked?: Boolean;
     hasDuplicatedChecksum?: Boolean
+    addFileSuccess?:Boolean
     
 }
 
@@ -64,6 +83,7 @@ export interface ITableItem extends ISimpleTableCell {
     author: string;
     time: string;
     checksum: number;
+    dateIdentifier?: any
 }
 
 export interface ITableItemDetail extends ISimpleTableCell {
@@ -71,6 +91,7 @@ export interface ITableItemDetail extends ISimpleTableCell {
     time: number;
     checksum: number;
     status?: any;
+    dateIdentifier?: any
 }
 
 export interface documentForRelease {
@@ -181,6 +202,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
      
     private isDialogOpen = new ObservableValue<boolean>(false);
+    private isDetailDialogOpen = new ObservableValue<boolean>(false);
     private toastRef: React.RefObject<Toast> = React.createRef<Toast>();
 
 
@@ -243,7 +265,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
            ]),
            tableItemDetail: new ArrayItemProvider([]),
            isClicked: false,
-           hasDuplicatedChecksum: false
+           hasDuplicatedChecksum: false,
+           addFileSuccess: false
          };
 
         // this.flag = true;
@@ -258,32 +281,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
            this.initializeComponent();            
 
         });
-       
-        //if(this.flag)
-        // this.initializeComponent();
-        
-        // .then(response => {
-        //     this.setState({
-        //     tableItems: response.tableItems,
-        //     tableItemDetail: response.tableItemDetail
-        //     });
 
-        //     this.tableItems = response.tableItems;
-        //     this.tableItemsDetail = response.tableItemDetail;
-
-        //     console.log("After promise state: ", this.state);
-        //     //this.forceUpdate();
-        // });
-
-        // let documentId = "79";
-        // //get document based on document Id (release Id)
-        // let doc = await getClient(ExtensionManagementRestClient).getDocumentByName(PUBLISHER_NAME, EXTENSION_NAME, SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement", documentId);
-
-        // this.setState({
-        //     tableItems: doc.tableItems,
-        //     tableItemDetail: doc.tableItemDetail
-        // });
-       // this.forceUpdate();
 
         console.log("State in componentDidMount: ", this.state);
        
@@ -291,33 +289,35 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
     private async initializeComponent() {
 
-    
-        // const projects = await getClient(CoreRestClient).getProjects();
+        const projectId = "cb898a3e-2c0b-4815-adab-21b9c9333002";
 
-
-        // const projectId = "cb898a3e-2c0b-4815-adab-21b9c9333002";
-        // const project = projects.find(x => x.id === projectId);
-
-        // const releases = await getClient(ReleaseRestClient).getReleases();
-
-        //const queryString = window.location;
-
-        //just a hard code release ID example
-        // const releaseId = 79;
-
-        // let release = await getClient(ReleaseRestClient).getRelease(projectId, releaseId);
-
-        // this.releaseObj = release;
-
-        //console.log(queryString);
-        //const releaseId = await getClient(ReleaseRestClient).;
+        //const info = await getClient(ReleaseRestClient).get
         
-        // let projects = [];
-       
+
+      //console.log("Page data: ", info);
+
+
+      console.log("Date: ", Date.now());
+      
+        const fakeURL = "https://safebot.visualstudio.com/sfpowerreview/_releaseProgress?releaseId=160&environmentId=298&extensionId=AzlamSalam.sfpowerscripts-dev.release-tab&_a=release-environment-extension";
+
+        const urlParams = new URL(fakeURL);
+        const releaseId = urlParams.searchParams.get('releaseId');
+        const environmentId = urlParams.searchParams.get('environmentId');
+        console.log("url params: ",urlParams);
+        console.log("release id: ",releaseId);
+        console.log("environment id: ",environmentId);
+    
+
+        let release = await getClient(ReleaseRestClient).getRelease(projectId, Number(releaseId));
+        let releaseName = release.name;
+        console.log("Release Name: ", releaseName);
 
 
         //this can be fetched via url on release page
-        let documentId = "79";
+        //let documentId = releaseName + '_' + releaseId + '_' + environmentId;
+        let documentId = "79"
+        console.log("Doc Id: ", documentId);//Release-62_160_298
         //get document based on document Id (release Id)
         let docs = await getClient(ExtensionManagementRestClient).getDocumentsByName(PUBLISHER_NAME,EXTENSION_NAME,SCOPE_TYPE,SCOPE_VALUE, "ReleaseExtensionManagement");
 
@@ -361,47 +361,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
             }
         }
         
-        //let doc = await getClient(ExtensionManagementRestClient).getDocumentByName(PUBLISHER_NAME, EXTENSION_NAME, SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement", documentId);
-
-        //console.log("Fetched documentis: ", doc);
-
-
-        //initialize raw table items
-        // this.rawTableItems = doc.tableItems.items;
-        // this.rawTableItemsDetail = doc.tableItemDetail.items;
-
-        // for(let i=0; i<doc.logInfo.length; i++) {
-        //     this.rawTableItems = [...doc.logInfo[i].tableItems.items, ...this.rawTableItems];
-        //     this.rawTableItemsDetail = [...doc.logInfo[i].tableItemDetail.items, ...this.rawTableItemsDetail];
-            
-        // }
-
-        // console.log("Raw table items: ", this.rawTableItems);
-
-
-        // this.setState(
-        //     prevState => {
-
-        //         console.log("Previous state is: ", prevState);
-
-
-        //             return {
-        //                 tableItems: new ArrayItemProvider(
-        //                     this.rawTableItems
-        //                        ),
-        //                 tableItemDetail: new ArrayItemProvider(
-        //                     // doc.logInfo[0].tableItemDetail.items
-        //                     this.rawTableItemsDetail
-        //                )
-        //             }
-                
-        //     }
-        // );
-
-         //initialize raw table items
-        
-
-        
+      
 
         console.log("State in initializeComponent: ", this.state);
 
@@ -426,6 +386,13 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
             
         };
 
+        const onDetailDismiss = () => {
+            this.isDetailDialogOpen.value = false;
+            
+        };
+
+
+
        
 
        const onSave = async () => {
@@ -434,7 +401,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
         
         //init hasDuplicatedChecksum
         this.setState({
-            hasDuplicatedChecksum: false
+            hasDuplicatedChecksum: false,
+            addFileSuccess: false
         });
 
         //get doc of this release
@@ -461,7 +429,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
            //update state
             this.setState({
                 tableItems: self.tableItems,
-                tableItemDetail: self.tableItemsDetail
+                tableItemDetail: self.tableItemsDetail,
+                addFileSuccess: true
             });
 
 
@@ -480,7 +449,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                     let logInfo = [...doc.logInfo,logInfoItem];
                     let docToBeSent = {
                         __etag: doc.__etag,
-                        id: "79",
+                        id: "79",//release id and env id
                         logInfo: logInfo
                     }
 
@@ -493,35 +462,36 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
                     console.log("Doc received: ", doc);
 
-                    for(let j=0; j<doc.logInfo.length; j++) {
-                        if(self.checkSum == doc.logInfo[j].tableItems.items[0].checksum) {
-                            console.log("Duplicated checksum found");
-                            self.isDialogOpen.value = false;
+                    // for(let j=0; j<doc.logInfo.length; j++) {
+                    //     if(self.checkSum == doc.logInfo[j].tableItems.items[0].checksum) {
+                    //         console.log("Duplicated checksum found");
+                    //         self.isDialogOpen.value = false;
 
-                            //alert user that the checksum is the same
-                            // this.setState({
-                            //     hasDuplicatedChecksum: true
-                            // });
+                    //         //alert user that the checksum is the same
+                    //         // this.setState({
+                    //         //     hasDuplicatedChecksum: true
+                    //         // });
 
-                        let rawTableItems: ITableItem[] = [];
-                        let rawTableItemsDetail: ITableItemDetail[] = [];
-                        for(let j=0; j<doc.logInfo.length; j++) {
-                            rawTableItems = [...doc.logInfo[j].tableItems.items, ...rawTableItems];
-                            rawTableItemsDetail = [...doc.logInfo[j].tableItemDetail.items, ...rawTableItemsDetail];         
-                        }
-                        this.setState(
-                            prevState => {
-                                    return {
-                                        tableItems: new ArrayItemProvider(rawTableItems),
-                                        tableItemDetail: new ArrayItemProvider(rawTableItemsDetail),
-                                        hasDuplicatedChecksum: true
-                                    }          
-                            }
-                        );
+                    //     let rawTableItems: ITableItem[] = [];
+                    //     let rawTableItemsDetail: ITableItemDetail[] = [];
+                    //     for(let j=0; j<doc.logInfo.length; j++) {
+                    //         rawTableItems = [...doc.logInfo[j].tableItems.items, ...rawTableItems];
+                    //         rawTableItemsDetail = [...doc.logInfo[j].tableItemDetail.items, ...rawTableItemsDetail];         
+                    //     }
+                    //     this.setState(
+                    //         prevState => {
+                    //                 return {
+                    //                     tableItems: new ArrayItemProvider(rawTableItems),
+                    //                     tableItemDetail: new ArrayItemProvider(rawTableItemsDetail),
+                    //                     hasDuplicatedChecksum: true,
+                    //                     addFileSuccess: false
+                    //                 }          
+                    //         }
+                    //     );
 
-                            return;
-                        }
-                    }
+                    //         return;
+                    //     }
+                    // }
 
                    
                     console.log("rawTableItemsInit in onSave: ", this.rawTableItemsInit);
@@ -541,11 +511,15 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                             rawTableItemsDetail = [...docAfterUpdate.logInfo[j].tableItemDetail.items, ...rawTableItemsDetail];         
                         }
 
+                        //let d = await getClient(ExtensionManagementRestClient).deleteDocumentByName(PUBLISHER_NAME,EXTENSION_NAME,SCOPE_TYPE,SCOPE_VALUE,"ReleaseExtensionManagement", documentId);
+
                         this.setState(
                             prevState => {
                                     return {
                                         tableItems: new ArrayItemProvider(rawTableItems),
-                                        tableItemDetail: new ArrayItemProvider(rawTableItemsDetail)
+                                        tableItemDetail: new ArrayItemProvider(rawTableItemsDetail),
+                                        addFileSuccess: true,
+                                        isClicked: false
                                     }          
                             }
                         );
@@ -568,7 +542,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                     //update state
                     this.setState({
                         tableItems: self.tableItems,
-                        tableItemDetail: self.tableItemsDetail
+                        tableItemDetail: self.tableItemsDetail,
+                        addFileSuccess: true
                     });
                     break;
                 }
@@ -629,12 +604,15 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                         let author = "kang2";
                         let time = "sometime";
 
+                        const dateIdentifier = Date.now();
+
 
                         self.rawTableItems.push({
                             name:name,
                             author:author,
                             time:time,
-                            checksum: data.checksum
+                            checksum: data.checksum,
+                            dateIdentifier: dateIdentifier
                         });
 
 
@@ -643,7 +621,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                             name:name,
                             author:author,
                             time:time,
-                            checksum: data.checksum
+                            checksum: data.checksum,
+                            dateIdentifier: dateIdentifier
                         })
 
                         let newTableItemsNewlyAdded = new ArrayItemProvider<ITableItem>(self.rawTableItemsNewlyAdded);
@@ -678,7 +657,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                                     name: {
                                         iconProps: { render: renderStatusSuccess }, text: nameDetail
                                     },
-                                    status: "Done"
+                                    status: "Done",
+                                    dateIdentifier: dateIdentifier
                                 });
                             }else if(status == "Skip") {
                                 self.rawTableItemsDetail.push({
@@ -687,7 +667,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                                     name: {
                                         iconProps: { render: renderStatusSkipped }, text: nameDetail
                                     },
-                                    status: "Skip"
+                                    status: "Skip",
+                                    dateIdentifier: dateIdentifier
                                 });
                             }else if(status == "Fail") {
                                 self.rawTableItemsDetail.push({
@@ -696,7 +677,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                                     name: {
                                         iconProps: { render: renderStatusFailed }, text: nameDetail
                                     },
-                                    status: "Fail"
+                                    status: "Fail",
+                                    dateIdentifier: dateIdentifier
                                 });
                             }
                             
@@ -761,6 +743,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
        
 
         let checksum = data.data.checksum;
+        let dateIdentifier = data.data.dateIdentifier;
 
         if(this.state.tableItemDetail)
         console.log("State in handleClick: ",this.state.tableItemDetail.length);
@@ -771,18 +754,19 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
          //get document based on document Id (release Id)
          let doc = await getClient(ExtensionManagementRestClient).getDocumentByName(PUBLISHER_NAME, EXTENSION_NAME, SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement", documentId);
  
-         console.log("Doc on handleClick: ", doc.logInfo[0].tableItemDetail.items.length);
+         console.log("Doc on handleClick: ", doc);
 
          let detailItemTobeDisplayed: ITableItemDetail[] = [];
 
          for(let i=0; i<doc.logInfo.length; i++) {
              for(let j=0; j<doc.logInfo[i].tableItemDetail.items.length; j++) {
-                 if(doc.logInfo[i].tableItemDetail.items[j].checksum.toString() === checksum.toString()) {
+                 if(doc.logInfo[i].tableItemDetail.items[j].dateIdentifier.toString() === dateIdentifier.toString()) {
                     detailItemTobeDisplayed = [...detailItemTobeDisplayed, doc.logInfo[i].tableItemDetail.items[j]]
                     
                  }
              }
          }
+       
 
         console.log("Detail item to be displayed: ", detailItemTobeDisplayed);
 
@@ -798,7 +782,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                         name: {
                             iconProps: { render: renderStatusSuccess }, text: detailItemTobeDisplayed[i].name.text
                         },
-                        status: "Done"
+                        status: "Done",
+                        dateIdentifier: detailItemTobeDisplayed[i].dateIdentifier
                     });
                 }else if(detailItemTobeDisplayed[i].status == "Skip") {
                     updatedDetailItem.push({
@@ -807,7 +792,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                         name: {
                             iconProps: { render: renderStatusSkipped }, text: detailItemTobeDisplayed[i].name.text
                         },
-                        status: "Done"
+                        status: "Done",
+                        dateIdentifier: detailItemTobeDisplayed[i].dateIdentifier
                     });
                 }else if(detailItemTobeDisplayed[i].status == "Fail") {
                     updatedDetailItem.push({
@@ -816,7 +802,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                         name: {
                             iconProps: { render: renderStatusFailed }, text: detailItemTobeDisplayed[i].name.text
                         },
-                        status: "Fail"
+                        status: "Fail",
+                        dateIdentifier: detailItemTobeDisplayed[i].dateIdentifier
                     });
                 }
              }
@@ -833,6 +820,14 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
         console.log("State in oncliked: ", this.state);
 
     }
+
+    const handleDetailRowClick = async data => {
+    
+        console.log("handleDetailRowClick cliked");
+
+        this.isDetailDialogOpen.value = true;
+        
+    }
          
              
 
@@ -844,16 +839,28 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
             
          
             <div>
+                
                 {
-                    this.state.hasDuplicatedChecksum &&
+                    // this.state.hasDuplicatedChecksum &&
                     
-                    <Toast
-                    ref={this.toastRef}
-                    message="Duplicated file found!"
-                    callToAction="Cancel"
-                    onCallToActionClick={() => this.setState({hasDuplicatedChecksum: false})}
-                    />
+                    // <Toast
+                    // ref={this.toastRef}
+                    // message="Duplicated file found!"
+                    // callToAction="Cancel"
+                    // onCallToActionClick={() => this.setState({hasDuplicatedChecksum: false})}
+                    // />
+                
+                }
+                {
+                    // this.state.addFileSuccess &&
                     
+                    // <Toast
+                    // ref={this.toastRef}
+                    // message="Submitted successfully!"
+                    // callToAction="Cancel"
+                    // onCallToActionClick={() => this.setState({addFileSuccess: false})}
+                    // />
+                
                 }
                
              
@@ -879,6 +886,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                    
                     <Card className="flex-grow bolt-table-card" contentProps={{ contentPadding: false }}>
                          <Table ariaLabel="Basic Table" columns={fixedColumns} itemProvider={this.state.tableItems} role="table" 
+                          
                         onSelect={(event, data) => hanldeRowClick(data)}/>
                     </Card>
 
@@ -901,10 +909,12 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                     </div>
 
                     <Card className="flex-grow bolt-table-card" contentProps={{ contentPadding: false }}>
-                         <Table ariaLabel="Basic Table" columns={fixedColumnsDetail} itemProvider={this.state.tableItemDetail} role="table" />
+                         <Table ariaLabel="Basic Table" columns={fixedColumnsDetail} itemProvider={this.state.tableItemDetail} role="table" 
+                         onSelect={(event, data) => handleDetailRowClick(data)}
+                         />
                     </Card>
                 </div>
-                : <p>Nothing</p>
+                : <p>Nothing Found</p>
             }
 
                 </div>
@@ -937,6 +947,28 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                         ) : null;
                     }}
                 </Observer>
+
+                <Observer isDetailDialogOpen={this.isDetailDialogOpen}>
+                    {(props: { isDetailDialogOpen: boolean }) => {
+                        return props.isDetailDialogOpen ? (
+                            <Dialog
+                                titleProps={{ text: "Detail Infomation" }}
+                                footerButtonProps={[
+                                    {
+                                        text: "Cancel",
+                                        onClick: onDetailDismiss
+                                    }
+                                ]}
+                                onDismiss={onDetailDismiss}
+                                
+                            >
+                             Detail........................
+                            </Dialog>
+                        ) : null;
+                    }}
+                </Observer>
+
+
                 </div>
            
            
