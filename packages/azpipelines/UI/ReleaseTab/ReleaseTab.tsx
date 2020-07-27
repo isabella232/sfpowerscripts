@@ -66,6 +66,7 @@ import {
   import {
     IVssRestClientOptions
   } from "azure-devops-extension-api/Common/Context";
+import { ReleaseApi } from "azure-devops-node-api/ReleaseApi";
 
   
 
@@ -302,13 +303,24 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
         const projectId = "cb898a3e-2c0b-4815-adab-21b9c9333002";
 
-        const info = await getClient(ReleaseRestClient).getDefinitionEnvironments(projectId);
         
 
-       console.log("Page data: ", info);
+        //console.log("Test Release page data: ", ReleaseApi.RESOURCE_AREA_ID);
+
+        
+        
+        // const info = await getClient(ReleaseRestClient).getDefinitionEnvironments(projectId);
+        // const info2 = await getClient(ReleaseRestClient).getArtifactTypeDefinitions(projectId);
+        // const info3 = await getClient(ReleaseRestClient).getReleaseDefinitions(projectId);
+        // //const info4 = await getClient(ReleaseRestClient).get
+        
+
+        // console.log("getDefinitionEnvironments: ", info);
+        // console.log("getArtifactTypeDefinitions: ", info2);
+        // console.log("getReleaseDefinitions: ", info3);
 
 
-      console.log("Date: ", Date.now());
+        console.log("Date: ", Date.now());
       
         const fakeURL = "https://safebot.visualstudio.com/sfpowerreview/_releaseProgress?releaseId=160&environmentId=298&extensionId=AzlamSalam.sfpowerscripts-dev.release-tab&_a=release-environment-extension";
 
