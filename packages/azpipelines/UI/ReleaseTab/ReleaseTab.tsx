@@ -75,6 +75,7 @@ interface IPivotContentState {
     isClicked?: Boolean;
     hasDuplicatedChecksum?: Boolean
     addFileSuccess?:Boolean
+    indexOfDetailLogRow?:number
     
 }
 
@@ -92,6 +93,7 @@ export interface ITableItemDetail extends ISimpleTableCell {
     checksum: number;
     status?: any;
     dateIdentifier?: any
+    tasks?: any
 }
 
 export interface documentForRelease {
@@ -247,6 +249,9 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
    private checkSum;
 
+   
+
+
 
 
     constructor(props: {}) {
@@ -266,10 +271,13 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
            tableItemDetail: new ArrayItemProvider([]),
            isClicked: false,
            hasDuplicatedChecksum: false,
-           addFileSuccess: false
+           addFileSuccess: false,
+           indexOfDetailLogRow: 0
          };
 
         // this.flag = true;
+         
+        
       
     }
 
@@ -291,10 +299,10 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
         const projectId = "cb898a3e-2c0b-4815-adab-21b9c9333002";
 
-        //const info = await getClient(ReleaseRestClient).get
+    //     const info = await getClient(ReleaseRestClient).getDefinitionEnvironments(projectId);
         
 
-      //console.log("Page data: ", info);
+    //   console.log("Page data: ", info);
 
 
       console.log("Date: ", Date.now());
@@ -647,6 +655,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                             let nameDetail = data.tasks[i].task;
                             let timeTaken = data.tasks[i].timeTaken;
                             let status = data.tasks[i].status;
+                            let tasks = data.tasks;
         
                             console.log(nameDetail,timeTaken,status);
         
@@ -658,7 +667,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                                         iconProps: { render: renderStatusSuccess }, text: nameDetail
                                     },
                                     status: "Done",
-                                    dateIdentifier: dateIdentifier
+                                    dateIdentifier: dateIdentifier,
+                                    tasks: tasks
                                 });
                             }else if(status == "Skip") {
                                 self.rawTableItemsDetail.push({
@@ -668,7 +678,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                                         iconProps: { render: renderStatusSkipped }, text: nameDetail
                                     },
                                     status: "Skip",
-                                    dateIdentifier: dateIdentifier
+                                    dateIdentifier: dateIdentifier,
+                                    tasks: tasks
                                 });
                             }else if(status == "Fail") {
                                 self.rawTableItemsDetail.push({
@@ -678,7 +689,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                                         iconProps: { render: renderStatusFailed }, text: nameDetail
                                     },
                                     status: "Fail",
-                                    dateIdentifier: dateIdentifier
+                                    dateIdentifier: dateIdentifier,
+                                    tasks: tasks
                                 });
                             }
                             
@@ -783,7 +795,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                             iconProps: { render: renderStatusSuccess }, text: detailItemTobeDisplayed[i].name.text
                         },
                         status: "Done",
-                        dateIdentifier: detailItemTobeDisplayed[i].dateIdentifier
+                        dateIdentifier: detailItemTobeDisplayed[i].dateIdentifier,
+                        tasks: detailItemTobeDisplayed[i].tasks
                     });
                 }else if(detailItemTobeDisplayed[i].status == "Skip") {
                     updatedDetailItem.push({
@@ -793,7 +806,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                             iconProps: { render: renderStatusSkipped }, text: detailItemTobeDisplayed[i].name.text
                         },
                         status: "Done",
-                        dateIdentifier: detailItemTobeDisplayed[i].dateIdentifier
+                        dateIdentifier: detailItemTobeDisplayed[i].dateIdentifier,
+                        tasks: detailItemTobeDisplayed[i].tasks
                     });
                 }else if(detailItemTobeDisplayed[i].status == "Fail") {
                     updatedDetailItem.push({
@@ -803,7 +817,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                             iconProps: { render: renderStatusFailed }, text: detailItemTobeDisplayed[i].name.text
                         },
                         status: "Fail",
-                        dateIdentifier: detailItemTobeDisplayed[i].dateIdentifier
+                        dateIdentifier: detailItemTobeDisplayed[i].dateIdentifier,
+                        tasks: detailItemTobeDisplayed[i].tasks
                     });
                 }
              }
@@ -823,9 +838,23 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
     const handleDetailRowClick = async data => {
     
-        console.log("handleDetailRowClick cliked");
+        console.log("handleDetailRowClick cliked on row: ",data.index);
+
+        this.setState({
+            indexOfDetailLogRow: data.index
+        });
+
+       
 
         this.isDetailDialogOpen.value = true;
+
+        // if(this.state.tableItemDetail)
+        // console.log("Info in detail popup: ",this.state.tableItemDetail.value[data.index].tasks[data.index]);
+
+        // console.log("Index of detail row in state: ", this.state.indexOfDetailLogRow);
+
+        // if(this.state.tableItemDetail)
+        // console.log("Date info: ", this.state.tableItemDetail[data.index].tasks[data.index].Date)
         
     }
          
@@ -961,8 +990,40 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                                 ]}
                                 onDismiss={onDetailDismiss}
                                 
+                                
                             >
-                             Detail........................
+                             
+                             {
+                                 (this.state.tableItemDetail && this.state.indexOfDetailLogRow === 0) || (this.state.tableItemDetail && this.state.indexOfDetailLogRow) ?
+                                 <div>Id: {this.state.tableItemDetail.value[this.state.indexOfDetailLogRow].tasks[this.state.indexOfDetailLogRow].id.toString()}</div> 
+                                 : <p>Id: N/A</p>
+                             }
+                             {
+                                 (this.state.tableItemDetail && this.state.indexOfDetailLogRow === 0) || (this.state.tableItemDetail && this.state.indexOfDetailLogRow) ?
+                                 <div>Date: {this.state.tableItemDetail.value[this.state.indexOfDetailLogRow].tasks[this.state.indexOfDetailLogRow].Date.toString()}</div> 
+                                 : <p>Date: N/A</p>
+                             }
+                            {
+                                 (this.state.tableItemDetail && this.state.indexOfDetailLogRow === 0) || (this.state.tableItemDetail && this.state.indexOfDetailLogRow) ?
+                                 <div>User: {this.state.tableItemDetail.value[this.state.indexOfDetailLogRow].tasks[this.state.indexOfDetailLogRow].User.toString()}</div> 
+                                 : <p>User: N/A</p>
+                             }
+                             {
+                                 (this.state.tableItemDetail && this.state.indexOfDetailLogRow === 0) || (this.state.tableItemDetail && this.state.indexOfDetailLogRow) ?
+                                 <div>Condition: {this.state.tableItemDetail.value[this.state.indexOfDetailLogRow].tasks[this.state.indexOfDetailLogRow].condition.toString()}</div> 
+                                 : <p>Condition: N/A</p>
+                             }
+                             {
+                                 (this.state.tableItemDetail && this.state.indexOfDetailLogRow === 0) || (this.state.tableItemDetail && this.state.indexOfDetailLogRow) ?
+                                 <div>Status: {this.state.tableItemDetail.value[this.state.indexOfDetailLogRow].tasks[this.state.indexOfDetailLogRow].status.toString()}</div> 
+                                 : <p>Status: N/A</p>
+                             }
+                             {
+                                 (this.state.tableItemDetail && this.state.indexOfDetailLogRow === 0) || (this.state.tableItemDetail && this.state.indexOfDetailLogRow) ?
+                                 <div>Steps: {this.state.tableItemDetail.value[this.state.indexOfDetailLogRow].tasks[this.state.indexOfDetailLogRow].steps.toString()}</div> 
+                                 : <p>Steps: N/A</p>
+                             }
+                            
                             </Dialog>
                         ) : null;
                     }}
