@@ -49,6 +49,7 @@ import { Duration } from "azure-devops-ui/Duration";
 import { css } from "azure-devops-ui/Util";
 
 import { Toast } from "azure-devops-ui/Toast";
+import { ListSelection } from "azure-devops-ui/List";
 
 
 import {
@@ -207,6 +208,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
     private isDetailDialogOpen = new ObservableValue<boolean>(false);
     private toastRef: React.RefObject<Toast> = React.createRef<Toast>();
 
+    private selection = new ListSelection({ selectOnFocus: false, multiSelect: true });
+
 
     //data used in the submitted execution logs
     private rawTableItems: ITableItem[] = [];
@@ -299,7 +302,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
         const projectId = "cb898a3e-2c0b-4815-adab-21b9c9333002";
 
-    //     const info = await getClient(ReleaseRestClient).getDefinitionEnvironments(projectId);
+        //const info = await getClient(ReleaseRestClient).getDefinitionEnvironments(projectId);
         
 
     //   console.log("Page data: ", info);
@@ -915,7 +918,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                    
                     <Card className="flex-grow bolt-table-card" contentProps={{ contentPadding: false }}>
                          <Table ariaLabel="Basic Table" columns={fixedColumns} itemProvider={this.state.tableItems} role="table" 
-                          
+                          selection={this.selection}
                         onSelect={(event, data) => hanldeRowClick(data)}/>
                     </Card>
 
