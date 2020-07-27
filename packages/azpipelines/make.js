@@ -146,7 +146,7 @@ updateExtensionManifest = function(dir, options) {
     manifest.id = "sfpowerscripts" + "-" + "dev";
     manifest.name = "sfpowerscripts" + " (" + "dev" + ")";
     manifest.public = false;
-    manifest.baseUri = "https://localhost:3000/build/";
+   // manifest.baseUri = "https://localhost:3000/build/";
     version = options.version;
   } else if (options.stage == "review") {
     manifest.version = options.version;

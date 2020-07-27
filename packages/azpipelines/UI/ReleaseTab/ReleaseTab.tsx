@@ -302,10 +302,10 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
         const projectId = "cb898a3e-2c0b-4815-adab-21b9c9333002";
 
-        //const info = await getClient(ReleaseRestClient).getDefinitionEnvironments(projectId);
+        const info = await getClient(ReleaseRestClient).getDefinitionEnvironments(projectId);
         
 
-    //   console.log("Page data: ", info);
+       console.log("Page data: ", info);
 
 
       console.log("Date: ", Date.now());
