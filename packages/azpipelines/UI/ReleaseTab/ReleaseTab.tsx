@@ -13,7 +13,8 @@ import { CoreRestClient, ProjectVisibility, TeamProjectReference } from "azure-d
 
 import 
     { ReleaseRestClient, 
-    Release
+    Release,
+    ReleaseDefinitionEnvironment
 
 } from "azure-devops-extension-api/Release";
 import {ExtensionManagementRestClient} from "azure-devops-extension-api/ExtensionManagement";
@@ -49,6 +50,7 @@ import { Duration } from "azure-devops-ui/Duration";
 import { css } from "azure-devops-ui/Util";
 
 import { Toast } from "azure-devops-ui/Toast";
+import { MessageCard, MessageCardSeverity } from "azure-devops-ui/MessageCard";
 import { ListSelection } from "azure-devops-ui/List";
 
 
@@ -108,6 +110,10 @@ const EXTENSION_NAME = "sfpowerscripts-dev";
 const SCOPE_TYPE = "Default";
 const SCOPE_VALUE = "Current";
 
+//URL of the current release page
+const currentUrl = window.location;
+const fakeURL = "https://safebot.visualstudio.com/sfpowerreview/_releaseProgress?releaseId=160&environmentId=298&extensionId=AzlamSalam.sfpowerscripts-dev.release-tab&_a=release-environment-extension";
+const projectId = "cb898a3e-2c0b-4815-adab-21b9c9333002";
 
 const fixedColumns = [
     {
@@ -301,28 +307,28 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
     private async initializeComponent() {
 
-        const projectId = "cb898a3e-2c0b-4815-adab-21b9c9333002";
+        //const projectId = "cb898a3e-2c0b-4815-adab-21b9c9333002";
+
 
         
-
-        //console.log("Test Release page data: ", ReleaseApi.RESOURCE_AREA_ID);
-
-        
-        
-        // const info = await getClient(ReleaseRestClient).getDefinitionEnvironments(projectId);
-        // const info2 = await getClient(ReleaseRestClient).getArtifactTypeDefinitions(projectId);
-        // const info3 = await getClient(ReleaseRestClient).getReleaseDefinitions(projectId);
+        //const info = await getClient(ReleaseRestClient).getDefinitionEnvironments(projectId);
+         //const info2 = await getClient(ReleaseRestClient).getArtifactTypeDefinitions(projectId);
+        // const info3 = await getClient(ReleaseRestClient).getReleaseSettings(projectId);
         // //const info4 = await getClient(ReleaseRestClient).get
         
 
-        // console.log("getDefinitionEnvironments: ", info);
+         //console.log("getDefinitionEnvironments: ", info);
         // console.log("getArtifactTypeDefinitions: ", info2);
-        // console.log("getReleaseDefinitions: ", info3);
+        // console.log("page info: ", info3);
 
+        // let releaseinfo = await getClient(ReleaseRestClient).getReleaseSettings(projectId);
+        // console.log("Release page data info: ", releaseinfo);
+
+        console.log("Current window location: ", currentUrl);
 
         console.log("Date: ", Date.now());
       
-        const fakeURL = "https://safebot.visualstudio.com/sfpowerreview/_releaseProgress?releaseId=160&environmentId=298&extensionId=AzlamSalam.sfpowerscripts-dev.release-tab&_a=release-environment-extension";
+        //const fakeURL = "https://safebot.visualstudio.com/sfpowerreview/_releaseProgress?releaseId=160&environmentId=298&extensionId=AzlamSalam.sfpowerscripts-dev.release-tab&_a=release-environment-extension";
 
         const urlParams = new URL(fakeURL);
         const releaseId = urlParams.searchParams.get('releaseId');
@@ -338,8 +344,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
 
         //this can be fetched via url on release page
-        //let documentId = releaseName + '_' + releaseId + '_' + environmentId;
-        let documentId = "79"
+        let documentId = releaseName + '_' + releaseId + '_' + environmentId;
+        //let documentId = "79"
         console.log("Doc Id: ", documentId);//Release-62_160_298
         //get document based on document Id (release Id)
         let docs = await getClient(ExtensionManagementRestClient).getDocumentsByName(PUBLISHER_NAME,EXTENSION_NAME,SCOPE_TYPE,SCOPE_VALUE, "ReleaseExtensionManagement");
@@ -353,8 +359,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
                  for(let j=0; j<doc.logInfo.length; j++) {
                     this.rawTableItems = [...doc.logInfo[j].tableItems.items, ...this.rawTableItems];
-                    this.rawTableItemsDetail = [...doc.logInfo[j].tableItemDetail.items, ...this.rawTableItemsDetail];
-                    
+                    this.rawTableItemsDetail = [...doc.logInfo[j].tableItemDetail.items, ...this.rawTableItemsDetail];               
                 }
         
                 console.log("Raw table items: ", this.rawTableItems);
@@ -416,6 +421,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
 
 
+
+
        
 
        const onSave = async () => {
@@ -428,8 +435,13 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
             addFileSuccess: false
         });
 
+        const urlParams = new URL(fakeURL);
+        const releaseId = urlParams.searchParams.get('releaseId');
+        const environmentId = urlParams.searchParams.get('environmentId');
         //get doc of this release
-        let documentId = "79";
+        let release = await getClient(ReleaseRestClient).getRelease(projectId, Number(releaseId));
+        let releaseName = release.name;
+        let documentId = releaseName + '_' + releaseId + '_' + environmentId;
 
         //all documents in the collection
         let docs = await getClient(ExtensionManagementRestClient).getDocumentsByName(PUBLISHER_NAME,EXTENSION_NAME,SCOPE_TYPE,SCOPE_VALUE, "ReleaseExtensionManagement");
@@ -444,7 +456,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
     
             let logInfo = [logInfoItem];
             let docToBeSent = {
-                id: "79",
+                id: documentId,
                 logInfo: logInfo
             }
            let document = await getClient(ExtensionManagementRestClient).createDocumentByName(docToBeSent, PUBLISHER_NAME, EXTENSION_NAME,SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement");
@@ -472,7 +484,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                     let logInfo = [...doc.logInfo,logInfoItem];
                     let docToBeSent = {
                         __etag: doc.__etag,
-                        id: "79",//release id and env id
+                        id: documentId,//release id and env id
                         logInfo: logInfo
                     }
 
@@ -556,7 +568,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                         tableItemDetail: self.tableItemsDetail
                     }
                     let docToBeSent = {
-                        id: "79",
+                        id: documentId,
                         logInfo: [logInfoItem]
                     }
 
@@ -777,7 +789,13 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
 
          //this can be fetched via url on release page
-         let documentId = "79";
+        const urlParams = new URL(fakeURL);
+        const releaseId = urlParams.searchParams.get('releaseId');
+        const environmentId = urlParams.searchParams.get('environmentId');
+        //get doc of this release
+        let release = await getClient(ReleaseRestClient).getRelease(projectId, Number(releaseId));
+        let releaseName = release.name;
+        let documentId = releaseName + '_' + releaseId + '_' + environmentId;
          //get document based on document Id (release Id)
          let doc = await getClient(ExtensionManagementRestClient).getDocumentByName(PUBLISHER_NAME, EXTENSION_NAME, SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement", documentId);
  
@@ -958,7 +976,14 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                          />
                     </Card>
                 </div>
-                : <p>Nothing Found</p>
+                :   
+                // <p>Nothing</p>
+                <MessageCard
+                className="flex-self-stretch" 
+                severity={MessageCardSeverity.Info}
+                >
+                Please click a log to show the detail
+                </MessageCard>
             }
 
                 </div>
