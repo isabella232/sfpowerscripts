@@ -111,8 +111,9 @@ const SCOPE_TYPE = "Default";
 const SCOPE_VALUE = "Current";
 
 //URL of the current release page
-const currentUrl = window.location;
-const fakeURL = "https://safebot.visualstudio.com/sfpowerreview/_releaseProgress?releaseId=160&environmentId=298&extensionId=AzlamSalam.sfpowerscripts-dev.release-tab&_a=release-environment-extension";
+const currentUrl = window.location.href;
+const fakeURL = currentUrl;
+//const fakeURL = "https://safebot.visualstudio.com/sfpowerreview/_releaseProgress?releaseId=160&environmentId=298&extensionId=AzlamSalam.sfpowerscripts-dev.release-tab&_a=release-environment-extension";
 const projectId = "cb898a3e-2c0b-4815-adab-21b9c9333002";
 
 const fixedColumns = [
@@ -337,6 +338,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
         console.log("release id: ",releaseId);
         console.log("environment id: ",environmentId);
     
+        if(releaseId && environmentId) {
 
         let release = await getClient(ReleaseRestClient).getRelease(projectId, Number(releaseId));
         let releaseName = release.name;
@@ -388,7 +390,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                 );
             }
         }
-        
+    }
       
 
         console.log("State in initializeComponent: ", this.state);
@@ -438,6 +440,11 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
         const urlParams = new URL(fakeURL);
         const releaseId = urlParams.searchParams.get('releaseId');
         const environmentId = urlParams.searchParams.get('environmentId');
+
+
+
+        if(releaseId && environmentId) {
+
         //get doc of this release
         let release = await getClient(ReleaseRestClient).getRelease(projectId, Number(releaseId));
         let releaseName = release.name;
@@ -583,6 +590,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                     break;
                 }
             }
+        }
         }
 
 
@@ -792,6 +800,10 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
         const urlParams = new URL(fakeURL);
         const releaseId = urlParams.searchParams.get('releaseId');
         const environmentId = urlParams.searchParams.get('environmentId');
+
+
+        if(releaseId && environmentId) {
+
         //get doc of this release
         let release = await getClient(ReleaseRestClient).getRelease(projectId, Number(releaseId));
         let releaseName = release.name;
@@ -864,6 +876,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                 updatedDetailItem
            )
         });
+        }
+
 
         console.log("State in oncliked: ", this.state);
 
