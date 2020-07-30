@@ -343,54 +343,62 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
         let release = await getClient(ReleaseRestClient).getRelease(projectId, Number(releaseId));
         let releaseName = release.name;
-        console.log("Release info: ", release);
+        //console.log("Release info: ", release);
 
+        console.log("Release difinition Id: ",);
 
+            let dId = releaseName + "_" + releaseId + "_" + environmentId;
         //this can be fetched via url on release page
-        let documentId = releaseName + '_' + releaseId + '_' + environmentId;
+        let documentId = "RunBook" + "_" + releaseId + "_" + environmentId;//RunBook_ReleaseId_EnvId
+
         //let documentId = "79"
         console.log("Doc Id: ", documentId);//Release-62_160_298//runbookname+version+releaseId+envId//relId_envId_runbookname_
         //get document based on document Id (release Id)
+
+        //let docsdelete = await getClient(ExtensionManagementRestClient).deleteDocumentByName(PUBLISHER_NAME,EXTENSION_NAME,SCOPE_TYPE,SCOPE_VALUE, "ReleaseExtensionManagement","RunBook_160_298");//sfpowersciptextenlog
+        //master documents
         let docs = await getClient(ExtensionManagementRestClient).getDocumentsByName(PUBLISHER_NAME,EXTENSION_NAME,SCOPE_TYPE,SCOPE_VALUE, "ReleaseExtensionManagement");//sfpowersciptextenlog
 
+
+        
         console.log("Documents of ReleaseExtensionManagement: ", docs);
 
         //let doc:documentForRelease;
-        for(let i=0; i<docs.length; i++) {
-            if(docs[i].id == documentId) {
-                 let doc = await getClient(ExtensionManagementRestClient).getDocumentByName(PUBLISHER_NAME, EXTENSION_NAME, SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement", documentId);
+        // for(let i=0; i<docs.length; i++) {
+        //     if(docs[i].id == documentId) {
+        //          let doc = await getClient(ExtensionManagementRestClient).getDocumentByName(PUBLISHER_NAME, EXTENSION_NAME, SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement", documentId);
 
-                 for(let j=0; j<doc.logInfo.length; j++) {
-                    this.rawTableItems = [...doc.logInfo[j].tableItems.items, ...this.rawTableItems];
-                    this.rawTableItemsDetail = [...doc.logInfo[j].tableItemDetail.items, ...this.rawTableItemsDetail];               
-                }
+        //          for(let j=0; j<doc.logInfo.length; j++) {
+        //             this.rawTableItems = [...doc.logInfo[j].tableItems.items, ...this.rawTableItems];
+        //             this.rawTableItemsDetail = [...doc.logInfo[j].tableItemDetail.items, ...this.rawTableItemsDetail];               
+        //         }
         
-                console.log("Raw table items: ", this.rawTableItems);
+        //         console.log("Raw table items: ", this.rawTableItems);
         
-                this.rawTableItemsInit = this.rawTableItems;
-                this.rawTableItemsDetailinit = this.rawTableItemsDetail;
+        //         this.rawTableItemsInit = this.rawTableItems;
+        //         this.rawTableItemsDetailinit = this.rawTableItemsDetail;
         
-                this.setState(
-                    prevState => {
+        //         this.setState(
+        //             prevState => {
         
-                        console.log("Previous state is: ", prevState);
+        //                 console.log("Previous state is: ", prevState);
         
         
-                            return {
-                                tableItems: new ArrayItemProvider(
-                                   // this.rawTableItems
-                                   this.rawTableItemsInit
-                                       ),
-                                tableItemDetail: new ArrayItemProvider(
-                                    this.rawTableItemsDetailinit
-                                    //this.rawTableItemsDetail
-                               )
-                            }
+        //                     return {
+        //                         tableItems: new ArrayItemProvider(
+        //                            // this.rawTableItems
+        //                            this.rawTableItemsInit
+        //                                ),
+        //                         tableItemDetail: new ArrayItemProvider(
+        //                             this.rawTableItemsDetailinit
+        //                             //this.rawTableItemsDetail
+        //                        )
+        //                     }
                         
-                    }
-                );
-            }
-        }
+        //             }
+        //         );
+        //     }
+        // }
     }
       
 
@@ -447,11 +455,11 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
         if(releaseId && environmentId) {
 
         //get doc of this release
-        let release = await getClient(ReleaseRestClient).getRelease(projectId, Number(releaseId));
-        let releaseName = release.name;
+        // let release = await getClient(ReleaseRestClient).getRelease(projectId, Number(releaseId));
+        // let releaseName = release.name;
 
         
-        let documentId = releaseName + '_' + releaseId + '_' + environmentId;
+        //let documentId = releaseName + '_' + releaseId + '_' + environmentId;
 
         //all documents in the collection
         let docs = await getClient(ExtensionManagementRestClient).getDocumentsByName(PUBLISHER_NAME,EXTENSION_NAME,SCOPE_TYPE,SCOPE_VALUE, "ReleaseExtensionManagement");
@@ -470,18 +478,18 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                 tableItemDetail: self.tableItemsDetail
             }
     
-            let logInfo = [logInfoItem];
+            let logInfo = logInfoItem;
 
             //-------create child doc Start-----------
-            let documentId = self.rawTableItemsNewlyAdded[0].name + "_" + releaseId + "_" + environmentId + "_" + self.rawTableItemsNewlyAdded[0].dateIdentifier;//runbookname_releaseId_EnvId_timestamp
+            let childDocumentId = self.rawTableItemsNewlyAdded[0].name + "_" + releaseId + "_" + environmentId + "_" + self.rawTableItemsNewlyAdded[0].dateIdentifier;//runbookname_releaseId_EnvId_timestamp
             let docToBeSent = {
-                id: documentId,
+                id: childDocumentId,
                 logInfo: logInfo
             }
-           let document = await getClient(ExtensionManagementRestClient).createDocumentByName(docToBeSent, PUBLISHER_NAME, EXTENSION_NAME,SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement");
+           //let document = await getClient(ExtensionManagementRestClient).createDocumentByName(docToBeSent, PUBLISHER_NAME, EXTENSION_NAME,SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement");
            //-------create child doc End-----------
 
-           console.log("First Document Created: ", document);
+           //console.log("First Document Created: ", document);
 
            //-------create Mater doc Start-----------
            let masterDocumentId = "RunBook" + "_" + releaseId + "_" + environmentId;//RunBook_ReleaseId_EnvId
@@ -492,7 +500,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                     {
                         runbook: self.rawTableItemsNewlyAdded[0].name,
                         lastUpdated: self.rawTableItemsNewlyAdded[0].dateIdentifier,
-                        executionLogs: logInfo
+                        executionLogs: [docToBeSent]
                     }
                ]
                
@@ -518,111 +526,117 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
             let masterDocumentId = "RunBook" + "_" + releaseId + "_" + environmentId;//RunBook_ReleaseId_EnvId
 
             //get child doc Id
-            //let documentId = self.rawTableItemsNewlyAdded[0].name + "_" + releaseId + "_" + environmentId + "_" + self.rawTableItemsNewlyAdded[0].dateIdentifier;//runbookname_releaseId_EnvId_timestamp
+            let childDocumentId = self.rawTableItemsNewlyAdded[0].name + "_" + releaseId + "_" + environmentId + "_" + self.rawTableItemsNewlyAdded[0].dateIdentifier;//runbookname_releaseId_EnvId_timestamp
              
-            //already had documents in the collection
             for(let i=0; i<docs.length; i++) {
-                //update the old doc
-                if(docs[i].id == documentId) {
-                    let doc = await getClient(ExtensionManagementRestClient).getDocumentByName(PUBLISHER_NAME, EXTENSION_NAME, SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement", documentId);
+            
+                //find master doc
+                if(docs[i].id == masterDocumentId) {
+                    let masterDoc = await getClient(ExtensionManagementRestClient).getDocumentByName(PUBLISHER_NAME, EXTENSION_NAME, SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement", masterDocumentId);
+
                     let logInfoItem = {
                         tableItems:  self.tableItemsNewlyAdded,
                         tableItemDetail: self.tableItemsDetail
                     }
-            
-                    let logInfo = [...doc.logInfo,logInfoItem];
-                    let docToBeSent = {
-                        __etag: doc.__etag,
-                        id: documentId,//release id and env id
-                        logInfo: logInfo
+
+                    let childDoc = {
+                        id: childDocumentId,
+                        logInfo: logInfoItem
                     }
 
-                    console.log("Doc to be sent fromonSave: ", docToBeSent);
-
-                    console.log("logInfoItem: ", logInfoItem);
-
-                    console.log("TEST########### ", doc.logInfo[0].tableItems.items[0].checksum);
-                    console.log("Checksum in local storage: ", self.checkSum);
-
-                    console.log("Doc received: ", doc);
-
-                    // for(let j=0; j<doc.logInfo.length; j++) {
-                    //     if(self.checkSum == doc.logInfo[j].tableItems.items[0].checksum) {
-                    //         console.log("Duplicated checksum found");
-                    //         self.isDialogOpen.value = false;
-
-                    //         //alert user that the checksum is the same
-                    //         // this.setState({
-                    //         //     hasDuplicatedChecksum: true
-                    //         // });
-
-                    //     let rawTableItems: ITableItem[] = [];
-                    //     let rawTableItemsDetail: ITableItemDetail[] = [];
-                    //     for(let j=0; j<doc.logInfo.length; j++) {
-                    //         rawTableItems = [...doc.logInfo[j].tableItems.items, ...rawTableItems];
-                    //         rawTableItemsDetail = [...doc.logInfo[j].tableItemDetail.items, ...rawTableItemsDetail];         
-                    //     }
-                    //     this.setState(
-                    //         prevState => {
-                    //                 return {
-                    //                     tableItems: new ArrayItemProvider(rawTableItems),
-                    //                     tableItemDetail: new ArrayItemProvider(rawTableItemsDetail),
-                    //                     hasDuplicatedChecksum: true,
-                    //                     addFileSuccess: false
-                    //                 }          
-                    //         }
-                    //     );
-
-                    //         return;
-                    //     }
-                    // }
-
-                   
-                    console.log("rawTableItemsInit in onSave: ", this.rawTableItemsInit);
-
-                
-                        let document = await getClient(ExtensionManagementRestClient).setDocumentByName(docToBeSent,PUBLISHER_NAME,EXTENSION_NAME,SCOPE_TYPE,SCOPE_VALUE,"ReleaseExtensionManagement");
-                        console.log("Document updated: ", document);
-
-                        //set the state
-                        let docAfterUpdate = await getClient(ExtensionManagementRestClient).getDocumentByName(PUBLISHER_NAME, EXTENSION_NAME, SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement", documentId);
-                        
-                        let rawTableItems: ITableItem[] = [];
-                        let rawTableItemsDetail: ITableItemDetail[] = [];
-
-                        for(let j=0; j<docAfterUpdate.logInfo.length; j++) {
-                            rawTableItems = [...docAfterUpdate.logInfo[j].tableItems.items, ...rawTableItems];
-                            rawTableItemsDetail = [...docAfterUpdate.logInfo[j].tableItemDetail.items, ...rawTableItemsDetail];         
+                    for(let j=0; j<masterDoc.children.length; j++) {
+                        if(masterDoc.children[j].runbook == self.rawTableItemsNewlyAdded[0].name) {
+                            masterDoc.children[j].lastUpdated = self.rawTableItemsNewlyAdded[0].dateIdentifier;
+                            masterDoc.children[j].executionLogs.push(childDoc);
+                            break;
                         }
 
-                        //let d = await getClient(ExtensionManagementRestClient).deleteDocumentByName(PUBLISHER_NAME,EXTENSION_NAME,SCOPE_TYPE,SCOPE_VALUE,"ReleaseExtensionManagement", documentId);
+                        if((masterDoc.children[j].runbook != self.rawTableItemsNewlyAdded[0].name) && (j == masterDoc.children.length-1)) {
 
-                        this.setState(
-                            prevState => {
-                                    return {
-                                        tableItems: new ArrayItemProvider(rawTableItems),
-                                        tableItemDetail: new ArrayItemProvider(rawTableItemsDetail),
-                                        addFileSuccess: true,
-                                        isClicked: false
-                                    }          
+                            let child  = {
+                                runbook: self.rawTableItemsNewlyAdded[0].name,
+                                lastUpdated: self.rawTableItemsNewlyAdded[0].dateIdentifier,
+                                executionLogs: [childDoc]
                             }
-                        );
-                        break;
+
+                            masterDoc.children.push(child);
+                            break;
+                        }
+                    }
+
+                    let masterDocToBeSent = {
+                        __etag: masterDoc.__etag,
+                        id: masterDoc.id,
+                        children: masterDoc.children
+                    }
+
+                    let masterDocument = await getClient(ExtensionManagementRestClient).setDocumentByName(masterDocToBeSent,PUBLISHER_NAME,EXTENSION_NAME,SCOPE_TYPE,SCOPE_VALUE,"ReleaseExtensionManagement");
+
+                    //set the state
+                    let docAfterUpdate = await getClient(ExtensionManagementRestClient).getDocumentByName(PUBLISHER_NAME, EXTENSION_NAME, SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement", masterDocumentId);
+
+                    console.log("After updated master doc: ", docAfterUpdate);
+
+                    let rawTableItems: ITableItem[] = [];
+                    let rawTableItemsDetail: ITableItemDetail[] = [];
+
+                    for(let j=0; j<docAfterUpdate.children.length; j++) {
+
+                        for(let k=0; k<docAfterUpdate.children[j].executionLogs.length; k++) {
+                            rawTableItems = [...docAfterUpdate.children[j].executionLogs[k].logInfo.tableItems.items, ...rawTableItems];
+                            rawTableItemsDetail = [...docAfterUpdate.children[j].executionLogs[k].logInfo.tableItemDetail.items, ...rawTableItemsDetail];
+                        }
+
+                        // rawTableItems = [...docAfterUpdate.logInfo[j].tableItems.items, ...rawTableItems];
+                        // rawTableItemsDetail = [...docAfterUpdate.logInfo[j].tableItemDetail.items, ...rawTableItemsDetail];         
+                    }
+
+                    //let d = await getClient(ExtensionManagementRestClient).deleteDocumentByName(PUBLISHER_NAME,EXTENSION_NAME,SCOPE_TYPE,SCOPE_VALUE,"ReleaseExtensionManagement", documentId);
+
+                    this.setState(
+                        prevState => {
+                                return {
+                                    tableItems: new ArrayItemProvider(rawTableItems),
+                                    tableItemDetail: new ArrayItemProvider(rawTableItemsDetail),
+                                    addFileSuccess: true,
+                                    isClicked: false
+                                }          
+                        }
+                    );
+
+                    break;
+            
+                 
+
                 }
 
-                //create the new doc if no Id matched
-                if((docs[i].id != documentId) && (i == docs.length-1)) {
+
+
+                if((docs[i].id != masterDocumentId) && (i == docs.length-1)) {
                     let logInfoItem = {
                         tableItems:  self.tableItemsNewlyAdded,
                         tableItemDetail: self.tableItemsDetail
                     }
-                    let docToBeSent = {
-                        id: documentId,
-                        logInfo: [logInfoItem]
+
+                    let childDoc = {
+                        id: childDocumentId,
+                        logInfo: logInfoItem
                     }
 
-                    let document = await getClient(ExtensionManagementRestClient).createDocumentByName(docToBeSent, PUBLISHER_NAME, EXTENSION_NAME,SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement");
-                    console.log("New Document Created: ", document);
+                    let masterDocToBeSent = {
+                        id: masterDocumentId,
+                        children: [
+                             {
+                                 runbook: self.rawTableItemsNewlyAdded[0].name,
+                                 lastUpdated: self.rawTableItemsNewlyAdded[0].dateIdentifier,
+                                 executionLogs: [childDoc]
+                             }
+                        ]
+                        
+                    }
+
+                    let document = await getClient(ExtensionManagementRestClient).createDocumentByName(masterDocToBeSent, PUBLISHER_NAME, EXTENSION_NAME,SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement");
+                    console.log("New Master Document Created: ", document);
                     //update state
                     this.setState({
                         tableItems: self.tableItems,
@@ -631,7 +645,10 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                     });
                     break;
                 }
+            
             }
+
+
         }
         }
 
@@ -826,7 +843,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
         let d = JSON.stringify(data.data);
 
-        console.log(d);
+        console.log("On row click data: ", d);
 
         if(!this.state.isClicked) {
             this.setState({
@@ -851,29 +868,41 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
         if(releaseId && environmentId) {
 
         //get doc of this release
-        let release = await getClient(ReleaseRestClient).getRelease(projectId, Number(releaseId));
-        let releaseName = release.name;
-        let documentId = releaseName + '_' + releaseId + '_' + environmentId;
-         //get document based on document Id (release Id)
-         let doc = await getClient(ExtensionManagementRestClient).getDocumentByName(PUBLISHER_NAME, EXTENSION_NAME, SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement", documentId);
+        // let release = await getClient(ReleaseRestClient).getRelease(projectId, Number(releaseId));
+        // let releaseName = release.name;
+        //let documentId = releaseName + '_' + releaseId + '_' + environmentId;
+        let masterDocumentId = "RunBook" + "_" + releaseId + "_" + environmentId;//RunBook_ReleaseId_EnvId
+         //get master docs
+         let doc = await getClient(ExtensionManagementRestClient).getDocumentByName(PUBLISHER_NAME, EXTENSION_NAME, SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement", masterDocumentId);
  
          console.log("Doc on handleClick: ", doc);
 
          let detailItemTobeDisplayed: ITableItemDetail[] = [];
 
-         for(let i=0; i<doc.logInfo.length; i++) {
-             for(let j=0; j<doc.logInfo[i].tableItemDetail.items.length; j++) {
-                 if(doc.logInfo[i].tableItemDetail.items[j].dateIdentifier.toString() === dateIdentifier.toString()) {
-                    detailItemTobeDisplayed = [...detailItemTobeDisplayed, doc.logInfo[i].tableItemDetail.items[j]]
+         
+           
+            for(let j=0; j<doc.children.length; j++) {
+                console.log("Should add##########out2");
+                for(let k=0; k<doc.children[j].executionLogs.length; k++) {
+                    console.log("Should add##########out3");
+                    for(let m=0; m<doc.children[j].executionLogs[k].logInfo.tableItemDetail.items.length; m++) {
+                        console.log("Should add##########out4");
+                        if(doc.children[j].executionLogs[k].logInfo.tableItemDetail.items[m].dateIdentifier.toString() === dateIdentifier.toString()) {
+                            detailItemTobeDisplayed = [...detailItemTobeDisplayed, doc.children[j].executionLogs[k].logInfo.tableItemDetail.items[m]];
+                            console.log("Should add##########");
+                        }
+                    }
                     
-                 }
-             }
-         }
+                }
+            }
+        
+     
        
 
         console.log("Detail item to be displayed: ", detailItemTobeDisplayed);
 
 
+        
         let updatedDetailItem: ITableItemDetail[] = [];
          //check status on detailItemTobeDisplayed
          for(let i=0; i<detailItemTobeDisplayed.length; i++) {
@@ -922,7 +951,9 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                 updatedDetailItem
            )
         });
+        
         }
+        
 
 
         console.log("State in oncliked: ", this.state);
