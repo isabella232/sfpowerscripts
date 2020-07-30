@@ -88,7 +88,8 @@ export interface ITableItem extends ISimpleTableCell {
     author: string;
     time: string;
     checksum: number;
-    dateIdentifier?: any
+    dateIdentifier?: any,
+    mode?:any
 }
 
 export interface ITableItemDetail extends ISimpleTableCell {
@@ -112,8 +113,8 @@ const SCOPE_VALUE = "Current";
 
 //URL of the current release page
 const currentUrl = window.location.href;
-const fakeURL = currentUrl;
-//const fakeURL = "https://safebot.visualstudio.com/sfpowerreview/_releaseProgress?releaseId=160&environmentId=298&extensionId=AzlamSalam.sfpowerscripts-dev.release-tab&_a=release-environment-extension";
+//const fakeURL = currentUrl;
+const fakeURL = "https://safebot.visualstudio.com/sfpowerreview/_releaseProgress?releaseId=160&environmentId=298&extensionId=AzlamSalam.sfpowerscripts-dev.release-tab&_a=release-environment-extension";
 const projectId = "cb898a3e-2c0b-4815-adab-21b9c9333002";
 
 const fixedColumns = [
@@ -342,15 +343,15 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
         let release = await getClient(ReleaseRestClient).getRelease(projectId, Number(releaseId));
         let releaseName = release.name;
-        console.log("Release Name: ", releaseName);
+        console.log("Release info: ", release);
 
 
         //this can be fetched via url on release page
         let documentId = releaseName + '_' + releaseId + '_' + environmentId;
         //let documentId = "79"
-        console.log("Doc Id: ", documentId);//Release-62_160_298
+        console.log("Doc Id: ", documentId);//Release-62_160_298//runbookname+version+releaseId+envId//relId_envId_runbookname_
         //get document based on document Id (release Id)
-        let docs = await getClient(ExtensionManagementRestClient).getDocumentsByName(PUBLISHER_NAME,EXTENSION_NAME,SCOPE_TYPE,SCOPE_VALUE, "ReleaseExtensionManagement");
+        let docs = await getClient(ExtensionManagementRestClient).getDocumentsByName(PUBLISHER_NAME,EXTENSION_NAME,SCOPE_TYPE,SCOPE_VALUE, "ReleaseExtensionManagement");//sfpowersciptextenlog
 
         console.log("Documents of ReleaseExtensionManagement: ", docs);
 
@@ -448,26 +449,61 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
         //get doc of this release
         let release = await getClient(ReleaseRestClient).getRelease(projectId, Number(releaseId));
         let releaseName = release.name;
+
+        
         let documentId = releaseName + '_' + releaseId + '_' + environmentId;
 
         //all documents in the collection
         let docs = await getClient(ExtensionManagementRestClient).getDocumentsByName(PUBLISHER_NAME,EXTENSION_NAME,SCOPE_TYPE,SCOPE_VALUE, "ReleaseExtensionManagement");
 
 
+        //no master doc, no child doc
+
+        //has master doc, has child doc
+
+
+
         if(docs.length == 0) {
-            //No document initially
+            //No document initially, no master doc, no child doc
             let logInfoItem = {
                 tableItems:  self.tableItemsNewlyAdded,
                 tableItemDetail: self.tableItemsDetail
             }
     
             let logInfo = [logInfoItem];
+
+            //-------create child doc Start-----------
+            let documentId = self.rawTableItemsNewlyAdded[0].name + "_" + releaseId + "_" + environmentId + "_" + self.rawTableItemsNewlyAdded[0].dateIdentifier;//runbookname_releaseId_EnvId_timestamp
             let docToBeSent = {
                 id: documentId,
                 logInfo: logInfo
             }
            let document = await getClient(ExtensionManagementRestClient).createDocumentByName(docToBeSent, PUBLISHER_NAME, EXTENSION_NAME,SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement");
+           //-------create child doc End-----------
+
            console.log("First Document Created: ", document);
+
+           //-------create Mater doc Start-----------
+           let masterDocumentId = "RunBook" + "_" + releaseId + "_" + environmentId;//RunBook_ReleaseId_EnvId
+
+           let masterDocToBeSent = {
+               id: masterDocumentId,
+               children: [
+                    {
+                        runbook: self.rawTableItemsNewlyAdded[0].name,
+                        lastUpdated: self.rawTableItemsNewlyAdded[0].dateIdentifier,
+                        executionLogs: logInfo
+                    }
+               ]
+               
+           }
+           let masterDocument = await getClient(ExtensionManagementRestClient).createDocumentByName(masterDocToBeSent, PUBLISHER_NAME, EXTENSION_NAME,SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement");
+
+           console.log("Mater document created: ", masterDocument);
+           //-------create Master doc End-----------
+
+          
+
            //update state
             this.setState({
                 tableItems: self.tableItems,
@@ -478,7 +514,13 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
         }else {
 
-             //already had documents in the collection
+            //get master doc Id
+            let masterDocumentId = "RunBook" + "_" + releaseId + "_" + environmentId;//RunBook_ReleaseId_EnvId
+
+            //get child doc Id
+            //let documentId = self.rawTableItemsNewlyAdded[0].name + "_" + releaseId + "_" + environmentId + "_" + self.rawTableItemsNewlyAdded[0].dateIdentifier;//runbookname_releaseId_EnvId_timestamp
+             
+            //already had documents in the collection
             for(let i=0; i<docs.length; i++) {
                 //update the old doc
                 if(docs[i].id == documentId) {
@@ -647,6 +689,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                         let author = "kang2";
                         let time = "sometime";
 
+                        let mode = data.mode;
+
                         const dateIdentifier = Date.now();
 
 
@@ -655,7 +699,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                             author:author,
                             time:time,
                             checksum: data.checksum,
-                            dateIdentifier: dateIdentifier
+                            dateIdentifier: dateIdentifier,
+                            mode: mode
                         });
 
 
@@ -665,7 +710,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                             author:author,
                             time:time,
                             checksum: data.checksum,
-                            dateIdentifier: dateIdentifier
+                            dateIdentifier: dateIdentifier,
+                            mode: mode
                         })
 
                         let newTableItemsNewlyAdded = new ArrayItemProvider<ITableItem>(self.rawTableItemsNewlyAdded);
