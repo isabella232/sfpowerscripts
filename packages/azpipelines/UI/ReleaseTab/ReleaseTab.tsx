@@ -314,25 +314,11 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
         //const projectId = "cb898a3e-2c0b-4815-adab-21b9c9333002";
 
 
-        
-        //const info = await getClient(ReleaseRestClient).getDefinitionEnvironments(projectId);
-         //const info2 = await getClient(ReleaseRestClient).getArtifactTypeDefinitions(projectId);
-        // const info3 = await getClient(ReleaseRestClient).getReleaseSettings(projectId);
-        // //const info4 = await getClient(ReleaseRestClient).get
-        
-
-         //console.log("getDefinitionEnvironments: ", info);
-        // console.log("getArtifactTypeDefinitions: ", info2);
-        // console.log("page info: ", info3);
-
-        // let releaseinfo = await getClient(ReleaseRestClient).getReleaseSettings(projectId);
-        // console.log("Release page data info: ", releaseinfo);
-
         console.log("Current window location: ", currentUrl);
 
         console.log("Date: ", Date.now());
       
-        //const fakeURL = "https://safebot.visualstudio.com/sfpowerreview/_releaseProgress?releaseId=160&environmentId=298&extensionId=AzlamSalam.sfpowerscripts-dev.release-tab&_a=release-environment-extension";
+       
 
         const urlParams = new URL(fakeURL);
         const releaseId = urlParams.searchParams.get('releaseId');
@@ -387,6 +373,13 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
             console.log("Document Id is: ", docs[i].id);
             console.log("Master doc Id is: ", masterDocumentId);
 
+
+
+            /*
+            * TO DO: Think about different pipelines situation
+            */
+
+
           
 
             //in one pipeline, different release with same envId
@@ -396,7 +389,7 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
                 let release = await getClient(ReleaseRestClient).getRelease(projectId, Number(releaseId)); 
                 let releaseOther = await getClient(ReleaseRestClient).getRelease(projectId, Number(releaseIdOther));
 
-                //if this release if created after other releases
+                //if this release is created after other releases (subsequent release)
                 if(releaseOther.createdOn < release.createdOn) {
 
                     for(let k=0; k<docs[i].children.length; k++) {
@@ -509,6 +502,27 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
 
         }
+
+
+
+        // let docsNew = await getClient(ExtensionManagementRestClient).getDocumentsByName(PUBLISHER_NAME,EXTENSION_NAME,SCOPE_TYPE,SCOPE_VALUE, "ReleaseExtensionManagement");//sfpowersciptextenlog
+
+        // for(let i=0; i<docsNew.length;i++) {
+        //     if(docsNew[i].id == masterDocumentId) {
+
+        //         console.log("same release");
+        //         let masterDoc = await getClient(ExtensionManagementRestClient).getDocumentByName(PUBLISHER_NAME, EXTENSION_NAME, SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement", masterDocumentId);
+
+        //         for(let i=0; i<masterDoc.children.length; i++) {
+        //             for(let j=0; j<masterDoc.children[i].executionLogs.length;j++) {
+        //                 this.rawTableItems = [...this.rawTableItems, ...masterDoc.children[i].executionLogs[j].logInfo.tableItems.items];
+        //             }
+        //         } 
+        //     }
+
+            
+        // }
+
         
        
         console.log("Raw table items: ", this.rawTableItems);
@@ -526,7 +540,8 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
        // return doc;
   
-       //let docsdelete = await getClient(ExtensionManagementRestClient).deleteDocumentByName(PUBLISHER_NAME,EXTENSION_NAME,SCOPE_TYPE,SCOPE_VALUE, "ReleaseExtensionManagement","RunBook_160_298");//sfpowersciptextenlog
+       
+      // let docsdelete = await getClient(ExtensionManagementRestClient).deleteDocumentByName(PUBLISHER_NAME,EXTENSION_NAME,SCOPE_TYPE,SCOPE_VALUE, "ReleaseExtensionManagement","RunBook_160_298");//sfpowersciptextenlog
     }
 
 
