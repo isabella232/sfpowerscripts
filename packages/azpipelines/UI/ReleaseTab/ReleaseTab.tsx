@@ -115,6 +115,8 @@ const SCOPE_VALUE = "Current";
 const currentUrl = window.location.href;
 //const fakeURL = currentUrl;
 const fakeURL = "https://safebot.visualstudio.com/sfpowerreview/_releaseProgress?releaseId=160&environmentId=298&extensionId=AzlamSalam.sfpowerscripts-dev.release-tab&_a=release-environment-extension";
+const fakeURL2 = "https://safebot.visualstudio.com/sfpowerreview/_releaseProgress?releaseId=79&environmentId=298&extensionId=AzlamSalam.sfpowerscripts-dev.release-tab&_a=release-environment-extension";
+
 const projectId = "cb898a3e-2c0b-4815-adab-21b9c9333002";
 
 const fixedColumns = [
@@ -342,17 +344,19 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
         if(releaseId && environmentId) {
 
         let release = await getClient(ReleaseRestClient).getRelease(projectId, Number(releaseId));
-        let releaseName = release.name;
-        //console.log("Release info: ", release);
+        
+        //let release2 = await getClient(ReleaseRestClient).getRelease(projectId, Number("79"));
+
+        console.log("Release info: ", release);
 
         console.log("Release difinition Id: ",);
 
-            let dId = releaseName + "_" + releaseId + "_" + environmentId;
-        //this can be fetched via url on release page
-        let documentId = "RunBook" + "_" + releaseId + "_" + environmentId;//RunBook_ReleaseId_EnvId
+        
+        let masterDocumentId = "RunBook" + "_" + releaseId + "_" + environmentId;//RunBook_ReleaseId_EnvId
 
+        console.log("Mater document Id: ", masterDocumentId);
         //let documentId = "79"
-        console.log("Doc Id: ", documentId);//Release-62_160_298//runbookname+version+releaseId+envId//relId_envId_runbookname_
+       // console.log("Doc Id: ", documentId);//Release-62_160_298//runbookname+version+releaseId+envId//relId_envId_runbookname_
         //get document based on document Id (release Id)
 
         //let docsdelete = await getClient(ExtensionManagementRestClient).deleteDocumentByName(PUBLISHER_NAME,EXTENSION_NAME,SCOPE_TYPE,SCOPE_VALUE, "ReleaseExtensionManagement","RunBook_160_298");//sfpowersciptextenlog
@@ -363,42 +367,159 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
         
         console.log("Documents of ReleaseExtensionManagement: ", docs);
 
-        //let doc:documentForRelease;
-        // for(let i=0; i<docs.length; i++) {
-        //     if(docs[i].id == documentId) {
-        //          let doc = await getClient(ExtensionManagementRestClient).getDocumentByName(PUBLISHER_NAME, EXTENSION_NAME, SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement", documentId);
+        
 
-        //          for(let j=0; j<doc.logInfo.length; j++) {
-        //             this.rawTableItems = [...doc.logInfo[j].tableItems.items, ...this.rawTableItems];
-        //             this.rawTableItemsDetail = [...doc.logInfo[j].tableItemDetail.items, ...this.rawTableItemsDetail];               
-        //         }
+        for(let i=0; i<docs.length; i++) {
+
+           
+            let indexes = this.locations(docs[i].id, '_');
+            //find last '_' position
+            let lastWildCardPosition = indexes[indexes.length-1];
+            let secondToLastWildCardPosition = indexes[indexes.length-2];
+
+            //other doc releaseId and envId
+            let envIdOther = docs[i].id.substring(lastWildCardPosition+1, docs[i].id.length);
+            let releaseIdOther = docs[i].id.substring(secondToLastWildCardPosition+1, lastWildCardPosition);
+
+            console.log("Environment Id: ", envIdOther);
+            console.log("Release Id: ", releaseIdOther);
+
+            console.log("Document Id is: ", docs[i].id);
+            console.log("Master doc Id is: ", masterDocumentId);
+
+            //in one pipeline, different release with same envId
+            if(envIdOther == environmentId && docs[i].id != masterDocumentId) {
+
+                console.log("different release with same envId", docs[i]);
+                let release = await getClient(ReleaseRestClient).getRelease(projectId, Number(releaseId)); 
+                let releaseOther = await getClient(ReleaseRestClient).getRelease(projectId, Number(releaseIdOther));
+
+                //if this release if created after other releases
+                if(releaseOther.createdOn < release.createdOn) {
+
+                    for(let k=0; k<docs[i].children.length; k++) {
+                        //console.log("Test............", docs[i]);
+                        for(let j=0; j<docs[i].children[k].executionLogs.length; j++){
+                            if(docs[i].children[k].executionLogs[j].logInfo.tableItems.items[0].mode == "run-once") {
+                                console.log("Run-once added!");
+                                this.rawTableItems = [...this.rawTableItems,docs[i].children[k].executionLogs[j].logInfo.tableItems.items[0]];
+                                console.log("Other docs run once: ", docs[i].children[k].executionLogs[j].logInfo.tableItems.items);
+
+
+
+                                let masterDoc = await getClient(ExtensionManagementRestClient).getDocumentByName(PUBLISHER_NAME, EXTENSION_NAME, SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement", masterDocumentId);
+
+                                let childDoc = docs[i].children[k];
+
+                                /*
+                                if(!!masterDoc) {
+
+                                   
+            
+                                for(let n=0; n<masterDoc.children.length; n++) {
+
+                                    
+                                    if(masterDoc.children[n].runbook == childDoc.runbook) {
+                                        console.log("Matesttttttttttttt....", masterDoc.children[n].executionLogs);
+                                        if(masterDoc.children[n].lastUpdated < childDoc.lastUpdated) {
+                                            masterDoc.children[n].lastUpdated = childDoc.lastUpdated;
+                                        }
+
+                                        //masterDoc.children[n].executionLogs = [...masterDoc.children[n].executionLogs, ...docs[i].children[k].executionLogs[j]];
+                                        masterDoc.children[n].executionLogs.push(docs[i].children[k].executionLogs[j]);
+                                        break;
+                                    }
+            
+                                    if((masterDoc.children[n].runbook != childDoc.runbook) && (n == masterDoc.children.length-1)) {
+            
+                                        //let child  = childDoc;
+
+                                        let child  = {
+                                            runbook: childDoc.runbook,
+                                            lastUpdated: childDoc.lastUpdated,
+                                            executionLogs: childDoc.executionLogs[j]
+                                        }
+            
+                                         masterDoc.children.push(child);
+                                        break;
+                                    }
+                                }
+            
+                                let masterDocToBeSent = {
+                                    __etag: masterDoc.__etag,
+                                    id: masterDoc.id,
+                                    children: masterDoc.children
+                                }
+            
+                                let masterDocument = await getClient(ExtensionManagementRestClient).setDocumentByName(masterDocToBeSent,PUBLISHER_NAME,EXTENSION_NAME,SCOPE_TYPE,SCOPE_VALUE,"ReleaseExtensionManagement");
+            
+
+
+                                }else {
+                                    let masterDocumentId = "RunBook" + "_" + releaseId + "_" + environmentId;//RunBook_ReleaseId_EnvId
+
+                                    let masterDocToBeSent = {
+                                        id: masterDocumentId,
+                                        children: [
+                                             {
+                                                 runbook: childDoc.runbook,
+                                                 lastUpdated: childDoc.lastUpdated,
+                                                 executionLogs: childDoc.executionLogs[j]
+                                             }
+                                        ]
+                                        
+                                    }
+                                    let masterDocument = await getClient(ExtensionManagementRestClient).createDocumentByName(masterDocToBeSent, PUBLISHER_NAME, EXTENSION_NAME,SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement");
+                         
+                                }*/
+
+
+                            }
+                            
+                        }
+
+                    }
+
+
+                }
+
+
+            }
+
+
+            if(docs[i].id == masterDocumentId) {
+
+                console.log("same release");
+                let masterDoc = await getClient(ExtensionManagementRestClient).getDocumentByName(PUBLISHER_NAME, EXTENSION_NAME, SCOPE_TYPE, SCOPE_VALUE, "ReleaseExtensionManagement", masterDocumentId);
+
+                for(let i=0; i<masterDoc.children.length; i++) {
+                    for(let j=0; j<masterDoc.children[i].executionLogs.length;j++) {
+
+
+                       //find all the same envId in this pipeline
+                    //    if(docs[i].id.)
+
+
+
+                        this.rawTableItems = [...this.rawTableItems, ...masterDoc.children[i].executionLogs[j].logInfo.tableItems.items];
+                    }
+                }
         
-        //         console.log("Raw table items: ", this.rawTableItems);
+                
+    
+            
+            }
+        }
         
-        //         this.rawTableItemsInit = this.rawTableItems;
-        //         this.rawTableItemsDetailinit = this.rawTableItemsDetail;
-        
-        //         this.setState(
-        //             prevState => {
-        
-        //                 console.log("Previous state is: ", prevState);
-        
-        
-        //                     return {
-        //                         tableItems: new ArrayItemProvider(
-        //                            // this.rawTableItems
-        //                            this.rawTableItemsInit
-        //                                ),
-        //                         tableItemDetail: new ArrayItemProvider(
-        //                             this.rawTableItemsDetailinit
-        //                             //this.rawTableItemsDetail
-        //                        )
-        //                     }
-                        
-        //             }
-        //         );
-        //     }
-        // }
+       
+        console.log("Raw table items: ", this.rawTableItems);
+
+        this.setState(preState => {
+            return {
+                tableItems: new ArrayItemProvider(this.rawTableItems)
+            }
+        });
+    
     }
       
 
@@ -407,6 +528,15 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
        // return doc;
   
        
+    }
+
+
+    //helper function
+    private locations(str,char) {
+        return str
+         .split("")
+         .map(function (c, i) { if (c == char) return i; })
+         .filter(function (v) { return v >= 0; });
     }
 
 
