@@ -331,9 +331,11 @@ class PivotContent extends React.Component<{}, IPivotContentState> {
 
         let release = await getClient(ReleaseRestClient).getRelease(projectId, Number(releaseId));
         
-        //let release2 = await getClient(ReleaseRestClient).getRelease(projectId, Number("79"));
+        let release2 = await getClient(ReleaseRestClient).getReleases();
 
         console.log("Release info: ", release);
+
+        console.log("Release2Info: ", release2);
 
         console.log("Release difinition Id: ",);
 
