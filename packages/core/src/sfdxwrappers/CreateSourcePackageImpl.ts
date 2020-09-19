@@ -136,13 +136,16 @@ export default class CreateSourcePackageImpl {
     }
 
     try {
+      
       if (!isNullOrUndefined(destructiveChangesPath)) {
+        console.log("Reading destructive changes from ",destructiveChangesPath);
         destructiveChanges = JSON.parse(
           fs.readFileSync(destructiveChangesPath, "utf8")
         );
         isDestructiveChangesFound = true;
       }
     } catch (error) {
+      console.log(error);
       console.log(
         "Unable to process destructive Manifest specified in the path or in the project manifest"
       );
