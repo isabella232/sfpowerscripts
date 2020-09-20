@@ -19,7 +19,7 @@ export default class CreateSourcePackage extends SfpowerscriptsCommand {
   public static examples = [
     `$ sfdx sfpowerscripts:CreateSourcePackage -n mypackage -v <version>`,
     `$ sfdx sfpowerscripts:CreateSourcePackage -n <mypackage> -v <version> --diffcheck --gittag`,
-    `$ sfdx sfpowerscripts:CreateSourcePackage -n mypackage -v <version> --destructivemanifestfilepath=destructiveChanges.xml` +
+    `$ sfdx sfpowerscripts:CreateSourcePackage -n mypackage -v <version>` +
     `--apextestsuite=<package>.testSuite-meta.xml\n`,
     `Output variable:`,
     `sfpowerscripts_artifact_metadata_directory`,
@@ -37,7 +37,6 @@ export default class CreateSourcePackage extends SfpowerscriptsCommand {
     package: flags.string({required: true, char: 'n', description: messages.getMessage('packageFlagDescription')}),
     versionnumber: flags.string({required: true, char: 'v', description: messages.getMessage('versionNumberFlagDescription')}),
     apextestsuite: flags.filepath({description: messages.getMessage('apextestsuiteFlagDescription')}),
-    destructivemanifestfilepath: flags.filepath({description: messages.getMessage('destructiveManiFestFilePathFlagDescription')}),
     artifactdir: flags.directory({description: messages.getMessage('artifactDirectoryFlagDescription'), default: 'artifacts'}),
     diffcheck: flags.boolean({description: messages.getMessage('diffCheckFlagDescription')}),
     gittag: flags.boolean({description: messages.getMessage('gitTagFlagDescription')}),
@@ -53,7 +52,6 @@ export default class CreateSourcePackage extends SfpowerscriptsCommand {
       const version_number: string = this.flags.versionnumber;
       const artifactDirectory: string = this.flags.artifactdir;
       const refname: string = this.flags.refname;
-      const destructiveManifestFilePath: string = this.flags.destructivemanifestfilepath;
       const apextestsuite: string=this.flags.apextestsuite;
 
       let runBuild: boolean;
@@ -94,7 +92,7 @@ export default class CreateSourcePackage extends SfpowerscriptsCommand {
         let createSourcePackageImpl = new CreateSourcePackageImpl(
           null,
           sfdx_package,
-          destructiveManifestFilePath,
+          null,
           packageMetadata
         );
         packageMetadata = await createSourcePackageImpl.exec();

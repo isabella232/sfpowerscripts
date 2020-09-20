@@ -4,6 +4,7 @@ import ManifestHelpers from "../manifest/ManifestHelpers";
 import MDAPIPackageGenerator from "../generators/MDAPIPackageGenerator";
 import { isNullOrUndefined } from "util";
 const fs = require("fs-extra");
+const xmlParser = require("xml2js").Parser({ explicitArray: false });
 
 export default class CreateSourcePackageImpl {
   public constructor(
@@ -37,15 +38,15 @@ export default class CreateSourcePackageImpl {
       this.sfdx_package
     );
     packageDirectory = packageDescriptor["path"];
-    this.packageArtifactMetadata.preDeploymentSteps=packageDescriptor["preDeploymentSteps"]?.split(",");
-    this.packageArtifactMetadata.postDeploymentSteps=packageDescriptor["postDeploymentSteps"]?.split(",");
+    this.packageArtifactMetadata.preDeploymentSteps=packageDescriptor["preDeploymentSteps"]?.split("&&");
+    this.packageArtifactMetadata.postDeploymentSteps=packageDescriptor["postDeploymentSteps"]?.split("&&");
     }
 
 
 
 
     //Generate Destructive Manifest
-    let destructiveChanges: DestructiveChanges = this.getDestructiveChanges(
+    let destructiveChanges: DestructiveChanges =  await this.getDestructiveChanges(
       packageDescriptor,
       this.destructiveManifestFilePath
     );
@@ -114,10 +115,10 @@ export default class CreateSourcePackageImpl {
     return this.packageArtifactMetadata;
   }
 
-  private getDestructiveChanges(
+  private async getDestructiveChanges(
     packageDescriptor: any,
     destructiveManifestFilePath: string
-  ): DestructiveChanges {
+  ): Promise<DestructiveChanges> {
     let destructiveChanges: any;
     let isDestructiveChangesFound: boolean = false;
     let destructiveChangesPath: string;
@@ -139,9 +140,11 @@ export default class CreateSourcePackageImpl {
       
       if (!isNullOrUndefined(destructiveChangesPath)) {
         console.log("Reading destructive changes from ",destructiveChangesPath);
-        destructiveChanges = JSON.parse(
-          fs.readFileSync(destructiveChangesPath, "utf8")
-        );
+
+
+        
+        let destructiveChangesXML: string = fs.readFileSync(destructiveChangesPath, "utf8")
+        destructiveChanges = await CreateSourcePackageImpl.xml2json(destructiveChangesXML);
         isDestructiveChangesFound = true;
       }
     } catch (error) {
@@ -160,9 +163,18 @@ export default class CreateSourcePackageImpl {
   }
 
 
+  private static xml2json(xml) {
+    return new Promise((resolve, reject) => {
+      xmlParser.parseString(xml, function (err, json) {
+        if (err) reject(err);
+        else resolve(json);
+      });
+    });
+  }
  
 
 }
+
 type DestructiveChanges = {
   isDestructiveChangesFound: boolean;
   destructiveChangesPath: string;

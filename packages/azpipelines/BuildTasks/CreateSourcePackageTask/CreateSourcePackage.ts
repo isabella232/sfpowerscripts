@@ -14,7 +14,6 @@ async function run() {
     let isGitTag: boolean = tl.getBoolInput("isGitTag", false);
     let projectDirectory: string = tl.getInput("project_directory", false);
     let apextestsuite = tl.getInput("apextestsuite", false);
-    let destructiveManifestFilePath=tl.getInput("destructiveManifestFilepath",false);
     let commitId = tl.getVariable("build.sourceVersion");
     let repositoryUrl = tl.getVariable("build.repository.uri");
 
@@ -55,7 +54,7 @@ async function run() {
       let createSourcePackageImpl = new CreateSourcePackageImpl(
         projectDirectory,
         sfdx_package,
-        destructiveManifestFilePath,
+        null,
         packageMetadata
       );
       packageMetadata = await createSourcePackageImpl.exec();

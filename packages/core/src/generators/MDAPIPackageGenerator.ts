@@ -37,7 +37,7 @@ export default class MDAPIPackageGenerator {
       "utf8"
     );
 
-    mdapiPackage.manifest = await this.xml2json(packageXml);
+    mdapiPackage.manifest = await MDAPIPackageGenerator.xml2json(packageXml);
     return mdapiPackage;
   }
 
