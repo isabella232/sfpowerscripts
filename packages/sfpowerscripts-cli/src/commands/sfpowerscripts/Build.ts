@@ -13,10 +13,7 @@ Messages.importMessagesDirectory(__dirname);
 
 // Load the specific messages for this file. Messages from @salesforce/command, @salesforce/core,
 // or any library that is using the messages framework can also be loaded this way.
-const messages = Messages.loadMessages(
-  "@dxatscale/sfpowerscripts",
-  "build"
-);
+const messages = Messages.loadMessages("@dxatscale/sfpowerscripts", "build");
 
 export default class Build extends SfpowerscriptsCommand {
   public static description = messages.getMessage("commandDescription");
@@ -74,10 +71,10 @@ export default class Build extends SfpowerscriptsCommand {
       default: 5,
     }),
     validatemode: flags.boolean({
-      description: messages.getMessage("executorCountFlagDescription"),
-      hidden:true,
+      description: messages.getMessage("validatemodeFlagDescription"),
+      hidden: true,
       default: false,
-    })
+    }),
   };
 
   public async execute() {
@@ -92,7 +89,7 @@ export default class Build extends SfpowerscriptsCommand {
       const diffcheck: boolean = this.flags.diffcheck;
       const buildNumber: number = this.flags.buildnumber;
       const executorcount: number = this.flags.executorcount;
-      const isValidateMode:boolean = this.flags.validatemode;
+      const isValidateMode: boolean = this.flags.validatemode;
 
       console.log(
         "-----------sfpowerscripts package builder------------------"
@@ -114,7 +111,6 @@ export default class Build extends SfpowerscriptsCommand {
       );
       let { generatedPackages, failedPackages } = await buildImpl.exec();
 
-    
       for (let generatedPackage of generatedPackages) {
         try {
           await ArtifactGenerator.generateArtifact(
@@ -125,7 +121,6 @@ export default class Build extends SfpowerscriptsCommand {
           );
 
           if (gittag) {
-            
             exec(`git config --global user.email "sfpowerscripts@dxscale"`);
             exec(`git config --global user.name "sfpowerscripts"`);
 
@@ -139,12 +134,17 @@ export default class Build extends SfpowerscriptsCommand {
           console.log(
             `Unable to create artifact or tag for ${generatedPackage.package_name}`
           );
+          failedPackages.push(generatedPackage.package_name);
+          //Remove the package from generatedpackages
+          generatedPackages = generatedPackages.filter((el) => {
+            if (el.package_name == generatedPackage.package_name) return false;
+            else return true;
+          });
           console.log(error);
         }
       }
 
       console.log(`${EOL}${EOL}`);
-
 
       console.log(
         `----------------------------------------------------------------------------------------------------`
@@ -162,7 +162,6 @@ export default class Build extends SfpowerscriptsCommand {
       console.log(
         `----------------------------------------------------------------------------------------------------`
       );
-
 
       if (failedPackages.length > 0) {
         process.exit(1);
