@@ -58,6 +58,7 @@ export default class StatsSender extends SfpowerscriptsCommand {
         prmode: "false"
       }
     );
+    console.log("Test2");
   
   }
 
