@@ -168,7 +168,7 @@ export default class Build extends SfpowerscriptsCommand {
 
 
     
-      SFPStatsSender.logElapsedTime(
+      SFPStatsSender.logGauge(
         "build.total_packages.elapsed_time",
         Date.now() - executionStartTime,
         {
