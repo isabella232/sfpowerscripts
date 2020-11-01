@@ -32,8 +32,8 @@ export default class StatsSender extends SfpowerscriptsCommand {
   public async execute() {
 
     const diffcheck: boolean = false;
-    const isSkipValidation: boolean = false;
-    const isValidateMode: boolean = true;
+    const isSkipValidation: boolean = true;
+    const isValidateMode: boolean = false;
     const isBlank:boolean=false;
     
 
