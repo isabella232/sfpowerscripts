@@ -7,9 +7,7 @@ const fs = require("fs-extra");
 import { EOL } from "os";
 import SFPStatsSender from "../utils/SFPStatsSender";
 
-
 export default class CreateDataPackageImpl {
-
   private packageLogger;
 
   public constructor(
@@ -17,8 +15,11 @@ export default class CreateDataPackageImpl {
     private sfdx_package: string,
     private packageArtifactMetadata: PackageMetadata
   ) {
-    fs.outputFileSync(`.sfpowerscripts/logs/${sfdx_package}`, `sfpowerscripts--log${EOL}`)
-    this.packageLogger=`.sfpowerscripts/logs/${sfdx_package}`;
+    fs.outputFileSync(
+      `.sfpowerscripts/logs/${sfdx_package}`,
+      `sfpowerscripts--log${EOL}`
+    );
+    this.packageLogger = `.sfpowerscripts/logs/${sfdx_package}`;
   }
 
   public async exec(): Promise<PackageMetadata> {
@@ -29,9 +30,17 @@ export default class CreateDataPackageImpl {
       null,
       this.packageLogger
     );
-    SFPLogger.log("Project Directory", this.projectDirectory, this.packageLogger);
+    SFPLogger.log(
+      "Project Directory",
+      this.projectDirectory,
+      this.packageLogger
+    );
     SFPLogger.log("sfdx_package", this.sfdx_package, this.packageLogger);
-    SFPLogger.log("packageArtifactMetadata", this.packageArtifactMetadata, this.packageLogger);
+    SFPLogger.log(
+      "packageArtifactMetadata",
+      this.packageArtifactMetadata,
+      this.packageLogger
+    );
 
     let startTime = Date.now();
 
@@ -51,7 +60,12 @@ export default class CreateDataPackageImpl {
       ]?.split(",");
     }
 
-    if (MDAPIPackageGenerator.isEmptyFolder(this.projectDirectory,packageDirectory)) {
+    if (
+      MDAPIPackageGenerator.isEmptyFolder(
+        this.projectDirectory,
+        packageDirectory
+      )
+    ) {
       this.printEmptyArtifactWarning();
     }
 
@@ -72,10 +86,21 @@ export default class CreateDataPackageImpl {
       timestamp: Date.now(),
     };
 
-    SFPStatsSender.logElapsedTime("package.elapsed.time",this.packageArtifactMetadata.creation_details.creation_time,{package:this.packageArtifactMetadata.package_name,type:this.packageArtifactMetadata.package_type});
-    SFPStatsSender.logCount("package.created",{package:this.packageArtifactMetadata.package_name,type:this.packageArtifactMetadata.package_type});
-    
-    
+    SFPStatsSender.logElapsedTime(
+      "package.elapsed.time",
+      this.packageArtifactMetadata.creation_details.creation_time,
+      {
+        package: this.packageArtifactMetadata.package_name,
+        type: this.packageArtifactMetadata.package_type,
+        isDependencyValidated: "false"
+      }
+    );
+    SFPStatsSender.logCount("package.created", {
+      package: this.packageArtifactMetadata.package_name,
+      type: this.packageArtifactMetadata.package_type,
+      isDependencyValidated: "false"
+    });
+
     return this.packageArtifactMetadata;
   }
 
@@ -90,7 +115,11 @@ export default class CreateDataPackageImpl {
       null,
       this.packageLogger
     );
-    SFPLogger.log("Proceeding to create an empty artifact", null, this.packageLogger);
+    SFPLogger.log(
+      "Proceeding to create an empty artifact",
+      null,
+      this.packageLogger
+    );
     SFPLogger.log(
       "---------------------------------------------------------------------------------------",
       null,

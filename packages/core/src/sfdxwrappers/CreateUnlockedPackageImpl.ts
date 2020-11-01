@@ -60,7 +60,7 @@ export default class CreateUnlockedPackageImpl {
     );
 
     //Get the one in working directory
-    this.config_file_path=path.join("config", "project-scratch-def.json");
+    this.config_file_path = path.join("config", "project-scratch-def.json");
 
     //Get the revised package Descriptor
     let packageDescriptor = ManifestHelpers.getSFDXPackageDescriptor(
@@ -72,7 +72,7 @@ export default class CreateUnlockedPackageImpl {
     SFPLogger.log("Package Directory", packageDirectory, this.packageLogger);
 
     //Get Type of Package
-    SFPLogger.log("Fetching Package Type Info from DevHub")
+    SFPLogger.log("Fetching Package Type Info from DevHub");
     await this.getPackageTypeInfos();
     let packageTypeInfo = CreateUnlockedPackageImpl.packageTypeInfos.find(
       (pkg) => pkg.Name == this.sfdx_package
@@ -81,29 +81,31 @@ export default class CreateUnlockedPackageImpl {
       this.isOrgDependentPackage = true;
 
     //Resolve the package dependencies
-    if(this.isOrgDependentPackage)
-    {
-     // Store original dependencies to artifact
-     this.packageArtifactMetadata.dependencies = packageDescriptor[
-      "dependencies"
-    ];
-    
-    //Remove dependencies of org dependent packages
-     let projectManifestFromWorkingDirectory=ManifestHelpers.getSFDXPackageManifest(workingDirectory);
-     let packageDescriptorInWorkingDirectory=ManifestHelpers.getPackageDescriptorFromConfig(this.sfdx_package,projectManifestFromWorkingDirectory);
-     
-     //Cleanup sfpowerscripts constructs
-     delete packageDescriptorInWorkingDirectory["dependencies"];
-     delete packageDescriptorInWorkingDirectory["type"];
-     delete packageDescriptorInWorkingDirectory["preDeploymentSteps"];
-     delete packageDescriptorInWorkingDirectory["postDeploymentSteps"];
+    if (this.isOrgDependentPackage) {
+      // Store original dependencies to artifact
+      this.packageArtifactMetadata.dependencies =
+        packageDescriptor["dependencies"];
 
+      //Remove dependencies of org dependent packages
+      let projectManifestFromWorkingDirectory = ManifestHelpers.getSFDXPackageManifest(
+        workingDirectory
+      );
+      let packageDescriptorInWorkingDirectory = ManifestHelpers.getPackageDescriptorFromConfig(
+        this.sfdx_package,
+        projectManifestFromWorkingDirectory
+      );
 
+      //Cleanup sfpowerscripts constructs
+      delete packageDescriptorInWorkingDirectory["dependencies"];
+      delete packageDescriptorInWorkingDirectory["type"];
+      delete packageDescriptorInWorkingDirectory["preDeploymentSteps"];
+      delete packageDescriptorInWorkingDirectory["postDeploymentSteps"];
 
-     fs.writeJsonSync(path.join(workingDirectory, "sfdx-project.json"),projectManifestFromWorkingDirectory)
-    }
-    else if(!this.isOrgDependentPackage && !this.isSkipValidation)
-    {
+      fs.writeJsonSync(
+        path.join(workingDirectory, "sfdx-project.json"),
+        projectManifestFromWorkingDirectory
+      );
+    } else if (!this.isOrgDependentPackage && !this.isSkipValidation) {
       this.resolvePackageDependencies(packageDescriptor, workingDirectory);
       //Redo the fetch of the descriptor as the above command would have redone the dependencies
       packageDescriptor = ManifestHelpers.getSFDXPackageDescriptor(
@@ -111,17 +113,12 @@ export default class CreateUnlockedPackageImpl {
         this.sfdx_package
       );
       //Store the resolved dependencies
-      this.packageArtifactMetadata.dependencies = packageDescriptor[
-        "dependencies"
-      ];
+      this.packageArtifactMetadata.dependencies =
+        packageDescriptor["dependencies"];
+    } else {
+      this.packageArtifactMetadata.dependencies =
+        packageDescriptor["dependencies"];
     }
-    else
-    {
-      this.packageArtifactMetadata.dependencies = packageDescriptor[
-        "dependencies"
-      ];
-    }
-
 
     //Convert to MDAPI to get PayLoad
     let mdapiPackage = await MDAPIPackageGenerator.getMDAPIPackageFromSourceDirectory(
@@ -183,10 +180,20 @@ export default class CreateUnlockedPackageImpl {
       timestamp: Date.now(),
     };
 
-    SFPStatsSender.logElapsedTime("package.elapsed.time",this.packageArtifactMetadata.creation_details.creation_time,{package:this.packageArtifactMetadata.package_name,type:this.packageArtifactMetadata.package_type,isValidated:String(this.packageArtifactMetadata.isDependencyValidated)});
-    SFPStatsSender.logCount("package.created",{package:this.packageArtifactMetadata.package_name,type:this.packageArtifactMetadata.package_type,isValidated:String(this.packageArtifactMetadata.isDependencyValidated)});
-    
-
+    SFPStatsSender.logElapsedTime(
+      "package.elapsed.time",
+      this.packageArtifactMetadata.creation_details.creation_time,
+      {
+        package: this.packageArtifactMetadata.package_name,
+        type: this.packageArtifactMetadata.package_type,
+        isDependencyValidated: this.packageArtifactMetadata.isDependencyValidated?"true":"false"
+      }
+    );
+    SFPStatsSender.logCount("package.created", {
+      package: this.packageArtifactMetadata.package_name,
+      type: this.packageArtifactMetadata.package_type,
+      isDependencyValidated: this.packageArtifactMetadata.isDependencyValidated?"true":"false"
+    });
 
     return this.packageArtifactMetadata;
   }
@@ -216,7 +223,7 @@ export default class CreateUnlockedPackageImpl {
         );
 
         let pkgInfoResult = JSON.parse(pkgInfoResultAsJSON);
-        this.packageArtifactMetadata.isDependencyValidated = this.isSkipValidation;
+        this.packageArtifactMetadata.isDependencyValidated = !this.isSkipValidation;
         this.packageArtifactMetadata.package_version_number =
           pkgInfoResult.result[0].packageVersionNumber;
         this.packageArtifactMetadata.test_coverage =
