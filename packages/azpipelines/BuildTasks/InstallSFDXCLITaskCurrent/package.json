@@ -1,7 +1,7 @@
 {
   "name": "sfpowerscripts-installsfdx-task",
   "description": "Install SFDX CLI Task",
-  "version": "7.0.35",
+  "version": "7.0.36",
   "private": true,
   "repository": {
     "type": "git",
