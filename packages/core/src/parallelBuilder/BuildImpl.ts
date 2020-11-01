@@ -107,7 +107,6 @@ export default class BuildImpl {
         let isToBeBuilt = await diffImpl.exec();
         if (isToBeBuilt) {
           packageToBeBuilt.push(pkg);
-          SFPStatsSender.logCount("build.scheduled.packages",{package:pkg,type:type,isValidated:String(this.isSkipValidation),prMode:String(this.isValidateMode)});
         }
       }
       this.packagesToBeBuilt = packageToBeBuilt;
@@ -117,7 +116,12 @@ export default class BuildImpl {
     console.log("Packages scheduled to be built", this.packagesToBeBuilt);
 
 
-
+    //Log Packages to be built
+    for await (const pkg of this.packagesToBeBuilt) {
+      let { priority, type } = this.getPriorityandTypeOfAPackage(this.projectConfig,pkg);
+      SFPStatsSender.logCount("build.scheduled.packages",{package:pkg,type:type,isValidated:this.isSkipValidation?"true":"false",
+      prMode:this.isValidateMode?"true":"false"});
+    }
     
     if(this.packagesToBeBuilt.length==0)
     return {
@@ -165,7 +169,8 @@ export default class BuildImpl {
         .then(
           (packageMetadata: PackageMetadata) => {
             this.generatedPackages.push(packageMetadata);
-            SFPStatsSender.logCount("build.succeeded.packages",{package:pkg,type:type,isValidated:String(this.isSkipValidation),prMode:String(this.isValidateMode)});
+            SFPStatsSender.logCount("build.succeeded.packages",{package:pkg,type:type,isValidated:this.isSkipValidation?"true":"false",
+            prMode:this.isValidateMode?"true":"false"});
             this.queueChildPackages(packageMetadata);
           },
           (reason: any) => this.handlePackageError(reason, pkg)
@@ -271,7 +276,8 @@ export default class BuildImpl {
           )
           .then(
             (packageMetadata: PackageMetadata) => {
-              SFPStatsSender.logCount("build.succeeded.packages",{package:pkg,type:type,isValidated:String(this.isSkipValidation),prMode:String(this.isValidateMode)});
+              SFPStatsSender.logCount("build.succeeded.packages",{package:pkg,type:type,isValidated:this.isSkipValidation?"true":"false",
+              prMode:this.isValidateMode?"true":"false"});
               this.generatedPackages.push(packageMetadata);
               this.queueChildPackages(packageMetadata);
             },
