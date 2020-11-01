@@ -53,9 +53,9 @@ export default class StatsSender extends SfpowerscriptsCommand {
       "build.total_packages.duration",
       3600000,
       {
-        isDiffCheckEnabled: String(diffcheck) ,
-        isValidated: String(isSkipValidation),
-        prMode: String(isValidateMode)
+        isDiffCheckEnabled: "false" ,
+        isvalidated: "true",
+        prmode: "false"
       }
     );
   
