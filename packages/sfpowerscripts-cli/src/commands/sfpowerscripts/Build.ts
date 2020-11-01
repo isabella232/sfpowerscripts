@@ -163,19 +163,13 @@ export default class Build extends SfpowerscriptsCommand {
         )} minutes with {${failedPackages.length}} errors`
       );
 
-      let tags = {};
-
-
-
-    
       SFPStatsSender.logGauge(
-        "build.total_packages.elapsed_time",
+        "build.total_packages.duration",
         Date.now() - executionStartTime,
         {
-       
           isDiffCheckEnabled: diffcheck ? "true" : "false",
-          isValidated: isSkipValidation ? "true" : "false",
-          prMode: isValidateMode ? "true" : "false",
+          isValidated: isSkipValidation ? "false" : "true",
+          prMode: isValidateMode ? "true" : "false"
         }
       );
 
