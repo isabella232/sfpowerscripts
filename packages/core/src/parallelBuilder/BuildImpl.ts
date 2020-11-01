@@ -126,6 +126,7 @@ export default class BuildImpl {
       SFPStatsSender.logCount("build.scheduled.packages", {
         package: pkg,
         type: type,
+        isDiffCheckEnabled: this.isDiffCheckEnabled ? "true" : "false",
         isValidated: this.isSkipValidation ? "true" : "false",
         prMode: this.isValidateMode ? "true" : "false",
       });
@@ -179,6 +180,7 @@ export default class BuildImpl {
             SFPStatsSender.logCount("build.succeeded.packages", {
               package: pkg,
               type: type,
+              isDiffCheckEnabled: this.isDiffCheckEnabled ? "true" : "false",
               isValidated: this.isSkipValidation ? "true" : "false",
               prMode: this.isValidateMode ? "true" : "false",
             });
@@ -295,6 +297,7 @@ export default class BuildImpl {
               SFPStatsSender.logCount("build.succeeded.packages", {
                 package: pkg,
                 type: type,
+                isDiffCheckEnabled: this.isDiffCheckEnabled ? "true" : "false",
                 isValidated: this.isSkipValidation ? "true" : "false",
                 prMode: this.isValidateMode ? "true" : "false",
               });
