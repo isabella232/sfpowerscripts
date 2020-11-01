@@ -31,12 +31,33 @@ export default class StatsSender extends SfpowerscriptsCommand {
 
   public async execute() {
 
+    const diffcheck: boolean = true;
+    const isSkipValidation: boolean = true;
+    const isValidateMode: boolean = true;
+    const isBlank:boolean=false;
+    
+
     console.log("Start");
     SFPStatsSender.logGauge('test.size',3600000);
     SFPStatsSender.logGauge('test.size1',3600000,{test:"1",test2:"2",test3:"3"});
     SFPStatsSender.logGauge('test.size2',36000020,{test:"1",test2:"2",test3:"3"});
     SFPStatsSender.logGauge('test.size3',3600000,{test:"1",test2:"2",test3:"3",test4:"3"});
     console.log("End");
+
+
+    console.log(String(isSkipValidation));
+    console.log(String(isBlank));
+    
+
+    SFPStatsSender.logGauge(
+      "build.total_packages.duration",
+      3600000,
+      {
+        isDiffCheckEnabled: diffcheck ? "true" : "false",
+        isValidated: isSkipValidation ? "false" : "true",
+        prMode: isValidateMode ? "true" : "false"
+      }
+    );
   
   }
 
