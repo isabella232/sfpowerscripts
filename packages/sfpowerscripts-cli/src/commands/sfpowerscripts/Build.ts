@@ -122,6 +122,16 @@ export default class Build extends SfpowerscriptsCommand {
         return;
       }
 
+      SFPStatsSender.logGauge(
+        "build.total_packages.duration",
+        Date.now() - executionStartTime,
+        {
+          isDiffCheckEnabled: diffcheck ? "true" : "false",
+          isValidated: isSkipValidation ? "false" : "true",
+          prMode: isValidateMode ? "true" : "false"
+        }
+      );
+
       console.log(`${EOL}${EOL}`);
       console.log("Generating Artifacts and Tags....");
 
@@ -163,15 +173,7 @@ export default class Build extends SfpowerscriptsCommand {
         )} minutes with {${failedPackages.length}} errors`
       );
 
-      SFPStatsSender.logGauge(
-        "build.total_packages.duration",
-        Date.now() - executionStartTime,
-        {
-          isDiffCheckEnabled: diffcheck ? "true" : "false",
-          isValidated: isSkipValidation ? "false" : "true",
-          prMode: isValidateMode ? "true" : "false"
-        }
-      );
+      
 
       if (failedPackages.length > 0) {
         console.log(`Packages Failed To Build`, failedPackages);
