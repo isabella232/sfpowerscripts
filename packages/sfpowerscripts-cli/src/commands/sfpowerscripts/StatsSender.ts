@@ -31,8 +31,8 @@ export default class StatsSender extends SfpowerscriptsCommand {
 
   public async execute() {
 
-    const diffcheck: boolean = true;
-    const isSkipValidation: boolean = true;
+    const diffcheck: boolean = false;
+    const isSkipValidation: boolean = false;
     const isValidateMode: boolean = true;
     const isBlank:boolean=false;
     
@@ -53,9 +53,9 @@ export default class StatsSender extends SfpowerscriptsCommand {
       "build.total_packages.duration",
       3600000,
       {
-        isDiffCheckEnabled: diffcheck ? "true" : "false",
-        isValidated: isSkipValidation ? "false" : "true",
-        prMode: isValidateMode ? "true" : "false"
+        isDiffCheckEnabled: String(diffcheck) ,
+        isValidated: String(isSkipValidation),
+        prMode: String(isValidateMode)
       }
     );
   
