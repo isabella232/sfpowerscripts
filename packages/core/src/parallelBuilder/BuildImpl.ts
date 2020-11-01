@@ -107,7 +107,7 @@ export default class BuildImpl {
         let isToBeBuilt = await diffImpl.exec();
         if (isToBeBuilt) {
           packageToBeBuilt.push(pkg);
-         SFPStatsSender.logCount("build.scheduled.packages",{package:pkg});
+          SFPStatsSender.logCount("build.scheduled.packages",{package:pkg,type:type,isValidated:String(this.isSkipValidation),prMode:String(this.isValidateMode)});
         }
       }
       this.packagesToBeBuilt = packageToBeBuilt;
@@ -165,6 +165,7 @@ export default class BuildImpl {
         .then(
           (packageMetadata: PackageMetadata) => {
             this.generatedPackages.push(packageMetadata);
+            SFPStatsSender.logCount("build.succeeded.packages",{package:pkg,type:type,isValidated:String(this.isSkipValidation),prMode:String(this.isValidateMode)});
             this.queueChildPackages(packageMetadata);
           },
           (reason: any) => this.handlePackageError(reason, pkg)
@@ -270,7 +271,7 @@ export default class BuildImpl {
           )
           .then(
             (packageMetadata: PackageMetadata) => {
-              SFPStatsSender.logCount("build.succeeded.packages",{package:pkg});
+              SFPStatsSender.logCount("build.succeeded.packages",{package:pkg,type:type,isValidated:String(this.isSkipValidation),prMode:String(this.isValidateMode)});
               this.generatedPackages.push(packageMetadata);
               this.queueChildPackages(packageMetadata);
             },
