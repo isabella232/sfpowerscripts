@@ -14,10 +14,7 @@ Messages.importMessagesDirectory(__dirname);
 
 // Load the specific messages for this file. Messages from @salesforce/command, @salesforce/core,
 // or any library that is using the messages framework can also be loaded this way.
-const messages = Messages.loadMessages(
-  "@dxatscale/sfpowerscripts",
-  "build"
-);
+const messages = Messages.loadMessages("@dxatscale/sfpowerscripts", "build");
 
 export default class Build extends SfpowerscriptsCommand {
   public static description = messages.getMessage("commandDescription");
@@ -76,9 +73,9 @@ export default class Build extends SfpowerscriptsCommand {
     }),
     validatemode: flags.boolean({
       description: messages.getMessage("executorCountFlagDescription"),
-      hidden:true,
+      hidden: true,
       default: false,
-    })
+    }),
   };
 
   public async execute() {
@@ -93,7 +90,7 @@ export default class Build extends SfpowerscriptsCommand {
       const diffcheck: boolean = this.flags.diffcheck;
       const buildNumber: number = this.flags.buildnumber;
       const executorcount: number = this.flags.executorcount;
-      const isValidateMode:boolean = this.flags.validatemode;
+      const isValidateMode: boolean = this.flags.validatemode;
 
       console.log(
         "-----------sfpowerscripts package builder------------------"
@@ -115,18 +112,19 @@ export default class Build extends SfpowerscriptsCommand {
       );
       let { generatedPackages, failedPackages } = await buildImpl.exec();
 
-
-      if(diffcheck && generatedPackages.length == 0 && failedPackages.length==0)
-      {
+      if (
+        diffcheck &&
+        generatedPackages.length == 0 &&
+        failedPackages.length == 0
+      ) {
         console.log(`${EOL}${EOL}`);
         console.log("No packages found to be built.. .. ");
         return;
       }
-      
-      console.log(`${EOL}${EOL}`);    
+
+      console.log(`${EOL}${EOL}`);
       console.log("Generating Artifacts and Tags....");
 
-   
       for (let generatedPackage of generatedPackages) {
         try {
           await ArtifactGenerator.generateArtifact(
@@ -137,7 +135,6 @@ export default class Build extends SfpowerscriptsCommand {
           );
 
           if (gittag) {
-            
             exec(`git config --global user.email "sfpowerscripts@dxscale"`);
             exec(`git config --global user.name "sfpowerscripts"`);
 
@@ -155,9 +152,6 @@ export default class Build extends SfpowerscriptsCommand {
         }
       }
 
-     
-
-
       console.log(
         `----------------------------------------------------------------------------------------------------`
       );
@@ -169,20 +163,21 @@ export default class Build extends SfpowerscriptsCommand {
         )} minutes with {${failedPackages.length}} errors`
       );
 
+      let tags = {};
 
-      let tags={};
 
-     
-      if(isSkipValidation)
-         tags["isSkipValidation"]="true";
-      if(isValidateMode)
-        tags["isValidateMode"]="true";
-      if(diffcheck)
-          tags["isDiffCheck"]="true";
+
     
-      
-      SFPStatsSender.logElapsedTime("build.total_packages.elapsed_time",Date.now() - executionStartTime,tags);
-
+      SFPStatsSender.logElapsedTime(
+        "build.total_packages.elapsed_time",
+        Date.now() - executionStartTime,
+        {
+       
+          isDiffCheckEnabled: diffcheck ? "true" : "false",
+          isValidated: isSkipValidation ? "true" : "false",
+          prMode: isValidateMode ? "true" : "false",
+        }
+      );
 
       if (failedPackages.length > 0) {
         console.log(`Packages Failed To Build`, failedPackages);
@@ -190,7 +185,6 @@ export default class Build extends SfpowerscriptsCommand {
       console.log(
         `----------------------------------------------------------------------------------------------------`
       );
-
 
       if (failedPackages.length > 0) {
         process.exit(1);
