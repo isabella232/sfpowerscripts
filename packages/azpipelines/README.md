@@ -1,6 +1,9 @@
 # sfpowerscripts - azure pipelines extension
 
+
  
+
+
 SFPowerscripts is an Azure Pipelines Extension that converts Azure Pipelines into a CI/CD platform for Salesforce. The extension features the following tasks. You can read the documenation at  [sfpowerscripts](https://www.sfpowerscripts.com) website.
 
 Please note this extension only works with the newer source format based repositories only and  works with both Hosted Linux and Windows Agents
@@ -22,7 +25,7 @@ The changelog is available at [https://sfpowerscripts.com/changelog/](https://sf
 - Validate a Unlocked package for metadata coverage
 - Install all package dependencies of an unlocked package
 - Run apex code analysis using PMD
-- Export the full metadata in an org for backup
+- Export the full metadata in an org for backup [To be deprecated in next release]
 
 ## Deployment Related Tasks
 

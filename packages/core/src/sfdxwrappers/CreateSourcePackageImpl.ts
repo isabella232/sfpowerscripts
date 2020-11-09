@@ -9,6 +9,7 @@ const fs = require("fs-extra");
 import path = require("path");
 import ApexTypeFetcher, { FileDescriptor } from "../parser/ApexTypeFetcher";
 const Table = require("cli-table");
+const xmlParser = require("xml2js").Parser({ explicitArray: false });
 
 export default class CreateSourcePackageImpl {
   public constructor(
@@ -56,7 +57,7 @@ export default class CreateSourcePackageImpl {
     }
 
     //Generate Destructive Manifest
-    let destructiveChanges: DestructiveChanges = this.getDestructiveChanges(
+    let destructiveChanges: DestructiveChanges = await this.getDestructiveChanges(
       packageDescriptor,
       this.destructiveManifestFilePath
     );
@@ -195,10 +196,10 @@ export default class CreateSourcePackageImpl {
     console.log(`---------------------------------------------------------------------------------------------`);
   }
 
-  private getDestructiveChanges(
+  private  async getDestructiveChanges(
     packageDescriptor: any,
     destructiveManifestFilePath: string
-  ): DestructiveChanges {
+  ): Promise<DestructiveChanges> {
     let destructiveChanges: any;
     let isDestructiveChangesFound: boolean = false;
     let destructiveChangesPath: string;
@@ -218,9 +219,7 @@ export default class CreateSourcePackageImpl {
 
     try {
       if (!isNullOrUndefined(destructiveChangesPath)) {
-        destructiveChanges = JSON.parse(
-          fs.readFileSync(destructiveChangesPath, "utf8")
-        );
+        destructiveChanges = await CreateSourcePackageImpl.xml2json(destructiveChangesPath);
         isDestructiveChangesFound = true;
       }
     } catch (error) {
@@ -254,6 +253,16 @@ export default class CreateSourcePackageImpl {
     console.log("Following apex test classes were identified");
     console.log(table.toString());
   }
+
+  private static xml2json(xml) {
+    return new Promise((resolve, reject) => {
+      xmlParser.parseString(xml, function (err, json) {
+        if (err) reject(err);
+        else resolve(json);
+      });
+    });
+  }
+
 }
 type DestructiveChanges = {
   isDestructiveChangesFound: boolean;

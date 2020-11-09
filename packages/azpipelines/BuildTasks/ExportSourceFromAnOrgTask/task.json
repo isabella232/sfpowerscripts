@@ -6,6 +6,7 @@
     "helpMarkDown": "Export the entire metadata from the org utilizing mdapi, which can be used for further analyis ",
     "category": "Build",
     "author": "dxatscale@accenture.com",
+    "deprecated": true,
     "version": {
         "Major": 3,
         "Minor": 0,
