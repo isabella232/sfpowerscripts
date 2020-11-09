@@ -8,9 +8,9 @@
     "author": "dxatscale@accenture.com",
     "deprecated": true,
     "version": {
-        "Major": 3,
+        "Major": 4,
         "Minor": 0,
-        "Patch": 16
+        "Patch": 0
     },
     "runsOn": [
         "Agent"
