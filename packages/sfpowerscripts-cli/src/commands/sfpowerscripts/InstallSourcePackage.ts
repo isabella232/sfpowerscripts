@@ -83,7 +83,8 @@ export default class InstallSourcePackage extends SfpowerscriptsCommand {
           );
       } else if(!fs.existsSync(artifactMetadataFilepath) && skip_on_missing_artifact) {
           console.log(`Skipping task as artifact is missing, and 'SkipOnMissingArtifact' ${skip_on_missing_artifact}`);
-          process.exit(0);
+          process.exitCode=1;
+          return;
       }
 
       let packageMetadata = JSON.parse(fs
@@ -258,8 +259,12 @@ export default class InstallSourcePackage extends SfpowerscriptsCommand {
           "Failed to apply reconcile the second time, Partial Metadata applied"
         );
       }
-
+  } else
+  {
+    
   }
+
+
   let elapsedTime=Date.now()-startTime;
       
   SFPStatsSender.logElapsedTime("package.installation.elapsed_time",elapsedTime,{package:sfdx_package,type:"source", target_org:target_org})
